@@ -31,10 +31,17 @@ ROLE_PERMISSIONS = {
 
 def load_users() -> dict:
     """Load users from users.json. Returns {} on error."""
+#    try:
+#        with open(USERS_FILE, "r", encoding="utf-8") as f:
+#            return json.load(f)
+#    except Exception:
+#        return {}
     try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+        # st.secrets["users"] will be a dictionary-like object 
+        # containing all the user keys defined in the TOML above.
+        return dict(st.secrets["users"])
+    except Exception as e:
+        st.error(f"Error loading secrets: {e}")
         return {}
 
 def save_users(users: dict):
