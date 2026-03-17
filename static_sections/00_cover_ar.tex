@@ -1,0 +1,51 @@
+% =========================================================
+% PAGE 1: COVER PAGE (ARABIC) - RTL FIXED
+% =========================================================
+\pagestyle{empty} 
+
+\begin{tikzpicture}[remember picture, overlay]
+
+    % 2. ECES LOGO
+    \node[anchor=north] at ([yshift=-1.5cm]current page.north) {
+        \includegraphics[width=2.5cm]{eces_logo.png}
+    };
+
+    % 3. MAIN TITLE (Fixed Word Order)
+    % We wrap the text in \textarabic{...} to force RTL layout inside the LTR TikZ node.
+    \node[anchor=north] at ([yshift=-5cm]current page.north) {
+        \textarabic{%
+            \fontsize{45}{55}\selectfont \textbf{\color{ecesteal} بارومتر الأعمال}%
+        }
+    };
+
+    % 4. SUBTITLES
+    
+    % --- RIGHT SIDE: ISSUE NUMBER ---
+    % Fixed: Uses \textarabic to ensure "Issue" is on the right of "75"
+    \node[anchor=north east, align=right] at ([xshift=-2.5cm, yshift=-7cm]current page.north east) {
+        \textarabic{%
+            \fontsize{16}{20}\selectfont \textbf{\color{ecesteal} العدد \IssueNumber}%
+        }
+    };
+    
+    % --- LEFT SIDE: DATE ---
+    % Fixed: Uses \textarabic so the month order is correct
+    \node[anchor=north west, align=left] at ([xshift=2.5cm, yshift=-7cm]current page.north west) {
+        \textarabic{%
+            \fontsize{16}{20}\selectfont \textbf{\color{ecesteal} \CurrentQuarterText}%
+        }
+    };
+
+    % 5. FOOTER TEXT
+    % Fixed: Uses a minipage with \setRTL to handle the paragraph correctly
+    \node[anchor=north] at ([yshift=-22.8cm]current page.north) {
+        \begin{minipage}{18cm}
+            \setRTL \centering
+            \fontsize{13}{16}\selectfont \bfseries \color{white}
+            تقييم الأداء للفترة \CurrentQuarterText\\
+            والتوقعات للفترة \NextQuarterText\\
+            من وجهة نظر مجتمع الأعمال
+        \end{minipage}
+    };
+
+\end{tikzpicture}

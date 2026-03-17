@@ -1,0 +1,215 @@
+% =========================================================
+% PAGE 2: EXECUTIVE SUMMARY (START)
+% =========================================================
+
+% 1. Adjust Geometry for RTL Sidebar
+% Right margin = 5.5cm to clear the graphical sidebar cleanly
+\newgeometry{right=4.5cm, left=2cm, top=1cm, bottom=2.5cm}
+
+
+
+% ---------------------------------------------------------
+% TITLE & INTRO
+% ---------------------------------------------------------
+\noindent
+{\fontsize{24}{28}\selectfont \textbf{\color{ecestitle} ملخص تنفيذي}}
+\vspace{0.8em}
+\label{sec:ar_exec_summary}
+
+\noindent
+{\fontsize{11}{15}\selectfont \color{textdark}
+\ECESContent{exec_intro_ar}{يستعرض هذا التقرير تقييما دوريا يقوم به المركز المصري للدراسات الاقتصادية لعينة تضم 120 شركة من شركات القطاع الخاص تغطي مختلف القطاعات والأحجام، ويعكس رأي مجتمع الأعمال بشأن التطورات التي شهدتها مجموعة من المتغيرات، وتحديداً: الإنتاج، والمبيعات المحلية، والصادرات، والمخزون السلعي، ومستوى استغلال الطاقة الإنتاجية، والأسعار، والأجور، والتوظيف، والاستثمار، وذلك خلال الربع (\CurrentQuarterText)، وتوقعاته للربع (\NextQuarterText) مع مقارنة النتائج بالربع السابق والربع المناظر. وفيما يلي عرض موجز لأهم النتائج التي انتهى إليها التقرير للربع محل الدراسة (\CurrentQuarterText).}
+} 
+
+% ---------------------------------------------------------
+% SUBHEADER AND ARROW LEGEND
+% ---------------------------------------------------------
+\noindent
+% Aligned Vertically to Center ([c]) so text matches arrow height
+\begin{minipage}[c]{0.55\textwidth}
+    \raggedright
+    \fontsize{12}{14}\selectfont 
+    \textbf{\color{ecesteal} \underline{تقييم الأداء والتوقعات وفقا للمؤشر الإجمالي}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.40\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{arrow_ar.png}
+\end{minipage}
+
+\vspace{0.8em}
+
+% ---------------------------------------------------------
+% STYLED HIGHLIGHTS BOX
+% ---------------------------------------------------------
+\noindent
+\begin{tikzpicture}
+    \setRTL
+    % Modern Box: Light Teal Fill, Rounded Corners, Dark Teal Border
+    \node[
+        draw=ecesteal, 
+        line width=1.5pt, 
+        fill=ecesteal!5,        % 5% opacity background
+        rounded corners=8pt,    % Soft edges
+        inner sep=12pt, 
+        align=justify, 
+        text width=12cm         % Fits inside margins
+    ] (box) {
+        \fontsize{11}{15}\selectfont \color{textdark}
+        
+        % Overall
+        \ECESContent{exec_box_overall_ar}{\textbf{-- ارتفاع مؤشر أداء الأعمال خلال الربع محل الدراسة عن المستوى المحايد}\\
+        \textbf{-- ارتفاع مؤشر التوقعات عن المستوى المحايد خلال الربع القادم}}
+        
+        \vspace{0.8em}
+        
+        % Size (Blue)
+        \textbf{\color{textblue} \underline{وفقا للحجم:}} \\
+        \ECESContent{exec_box_size_ar}{لا يوجد تباين في الأداء على مستوى أحجام الشركات حيث تجاوز مؤشر أداء الأعمال لكافة الشركات المستوى المحايد}
+
+        
+        % Sector (Purple)
+        \textbf{\color{textpurple} \underline{وفقا للقطاع:}} \\
+         \ECESContent{exec_box_sector_ar}{تجاوزت مؤشرات الأداء لكافة القطاعات المستوى المحايد باستثناء قطاع الصناعات التحويلية الذي شهد أقل أداء على مستوى القطاعات محققا قيما دون المستوى المحايد}
+
+        
+        % Challenges (Green)
+        \textbf{\color{textgreen} \underline{التحديات:}} \\
+        \ECESContent{exec_box_challenges_ar}{-- الزيادة المتكررة في أسعار الطاقة والمياه تتصدر قائمة المعوقات التي واجهت كافة الشركات يليها التحديات المرتبطة بارتفاع التضخم.\\
+        -- قطاعا الصناعة التحويلية والتشييد والبناء والشركات الصغيرة والمتوسطة الأكثر معاناة.}
+    };
+\end{tikzpicture}
+
+
+% ---------------------------------------------------------
+% ANALYSIS & CHART 1
+% ---------------------------------------------------------
+\noindent
+\begin{minipage}[t]{0.58\textwidth}
+    \vspace{0pt} % Force alignment to top
+    \fontsize{11}{15}\selectfont
+    \ECESContent{exec_bpi_analysis_ar}{سجل مؤشر أداء الأعمال للربع محل الدراسة (\CurrentQuarterText) قيماً أعلى من \textbf{المستوى المحايد} بمقدار نقطة واحدة. استقرار المؤشرات الفرعية على أدائها الجيد. \textbf{ومقارنة بالربع السابق}، تراجع مؤشر أداء الأعمال بنحو 7 نقاط. ويرجع ذلك إلى انخفاض حاد في مؤشر الأجور بعد قفزة كبيرة شهدها خلال الربع السابق.}
+    \vspace{0.8em}
+    
+    \ECESContent{exec_expectations_ar}{كما سجل مؤشر توقعات الأداء للربع (\NextQuarterText) قيماً أعلى من \textbf{المستوى المحايد} بمقدار 4 نقاط وهو ما يُعزى إلى التوقعات بارتفاع كافة المؤشرات الفرعية.}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.38\textwidth}
+    \vspace{0pt}
+    \centering
+    % Frame around chart for polish (optional)
+    \setlength{\fboxsep}{0pt}
+    \includegraphics[width=\linewidth]{ch1.png}
+\end{minipage}
+
+\clearpage
+
+% =========================================================
+% PAGE 3: DETAILED ANALYSIS
+% =========================================================
+
+% ---------------------------------------------------------
+% SECTION: BY SIZE
+% ---------------------------------------------------------
+\noindent
+\begin{minipage}[t]{0.58\textwidth}
+    \vspace{0pt} 
+    {\fontsize{13}{16}\selectfont \textbf{\color{textblue} \underline{وفقا للحجم:}}} \vspace{0.6em}
+
+    \fontsize{11}{15}\selectfont
+    \ECESContent{exec_size_detail_ar}{لا يوجد تباين في الأداء على مستوى أحجام الشركات؛ حيث تجاوز مؤشر أداء الأعمال \textbf{لكافة الشركات المستوى المحايد} خلال الربع محل الدراسة مسجلا قيما أقل من الربع السابق ولكنها أفضل من الربع المناظر. ويعكس ذلك ثبات الأداء الجيد لكافة المؤشرات الفرعية وتحسن مؤشر الصادرات للشركات الكبيرة خلال الربع الحالي.}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.38\textwidth}
+    \vspace{0pt} 
+    \centering
+    \includegraphics[width=\linewidth]{ch2.png}
+\end{minipage}
+
+\vspace{2em}
+
+% ---------------------------------------------------------
+% SECTION: BY SECTOR
+% ---------------------------------------------------------
+\noindent
+{\fontsize{13}{16}\selectfont \textbf{\color{textpurple} \underline{وفقا للقطاع:}}} \vspace{0.6em}
+
+\noindent
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_sector_summary_ar}{تجاوزت مؤشرات الأداء لكافة القطاعات المستوى المحايد باستثناء قطاع الصناعات التحويلية الذي شهد أقل أداء على مستوى القطاعات محققا قيما دون المستوى المحايد. بينما سجل مؤشر الأداء لقطاع التشييد والبناء قيما عند المستوى المحايد.}
+}
+
+\vspace{1em}
+
+% Centered Chart
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\linewidth]{ch3.png}
+\end{figure}
+
+\vspace{0.5em}
+
+\noindent
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_manufacturing_ar}{سجل \textbf{قطاع الصناعات التحويلية أدنى أداء بين القطاعات بقيم أقل من المستوى المحايد} بنقطتين وأقل من الربع السابق بـ 7 نقاط، وإن كانت أفضل من الربع المناظر بنقطة واحدة. ويرجع ذلك بالأساس إلى انخفاض كافة مؤشرات القطاع دون المستوى المحايد خلال الربع محل الدراسة.}
+
+\vspace{0.8em}
+
+\ECESContent{exec_best_sector_ar}{وسجل \textbf{قطاع الاتصالات أفضل أداء، متجاوزا المستوى المحايد بـ 15 نقطة}؛ ولكن أقل من الربع السابق بنقطة واحدة. وأفضل من المناظر بـ 15 نقطة. ويُعزى السبب في ذلك إلى تعافي كافة مؤشرات القطاع خاصة الصادرات.}
+}
+
+\clearpage
+
+% =========================================================
+% PAGE 4: CHALLENGES & MACRO
+% =========================================================
+
+% ---------------------------------------------------------
+% SECTION: CHALLENGES
+% ---------------------------------------------------------
+\noindent
+{\fontsize{13}{16}\selectfont \textbf{\color{textgreen} \underline{التحديات والأولويات من وجهة نظر مجتمع الأعمال:}}} \vspace{1em}
+
+\noindent
+{\fontsize{11}{15}\selectfont \textbf{\ECESContent{exec_challenges_headline_ar}{لا تزال الزيادة المتكررة في أسعار الطاقة والمياه تتصدر قائمة المعوقات التي واجهت كافة الشركات خلال الربع محل الدراسة.}}} \vspace{0.8em}
+
+\noindent
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_challenges_body_ar}{يتصدر \textbf{ارتفاع تكاليف الطاقة والمياه} قائمة المعوقات بالنسبة لكافة الشركات خاصة في قطاعي الصناعات التحويلية والسياحة. وجاءت التحديات \textbf{المرتبطة بارتفاع التضخم} في المرتبة الثانية يليها \textbf{تحديات إجراءات التعامل مع الجهات الحكومية} في المرتبة الثالثة. وفي المرتبة الرابعة جاء \textbf{غموض توجهات السياسة الاقتصادية في المستقبل} وعدم الإفصاح عن اتجاهات الدولة الاقتصادية.}
+
+\vspace{0.8em}
+
+\ECESContent{exec_sme_comparison_ar}{وبالرغم من تصدر \textbf{تكاليف الطاقة والمياه وارتفاع التضخم} قائمة معوقات \textbf{كافة الشركات إلا أن الشركات الصغيرة والمتوسطة} تواجه عددا أكبر من التحديات مقارنة \textbf{بالشركات الكبيرة}.}
+}
+
+\vspace{1.5em}
+
+% Priorities Box (Simple Highlight)
+\noindent
+\begin{tikzpicture}
+    \setRTL
+    \node[draw=textgreen, fill=textgreen!5, rounded corners=5pt, inner sep=10pt, text width=12cm] {
+        \fontsize{11}{15}\selectfont
+        \textbf{أهم الأولويات:} \ECESContent{exec_priorities_ar}{إعادة النظر في أسعار الطاقة والمياه والسيطرة على التضخم، وضرورة الإفصاح عن توجهات السياسات الاقتصادية في المستقبل، واستمرار جهود حل مشكلات المنظومة الضريبية.}
+    };
+\end{tikzpicture}
+
+\vspace{2em}
+
+% ---------------------------------------------------------
+% SECTION: MACROECONOMIC
+% ---------------------------------------------------------
+\noindent
+{\fontsize{13}{16}\selectfont \textbf{\color{textdark} \underline{أهم التطورات الاقتصادية الكلية:}}} \vspace{0.8em}
+
+\begin{itemize} 
+    \setlength\itemsep{0.8em}
+    \item \fontsize{11}{15}\selectfont \textbf{عالميا:} \ECESContent{exec_macro_global_ar}{استمرار التوقعات بتراجع النمو العالمي، نمو منخفض ومتفاوت وتحديات متعددة تواجه الاقتصاد العالمي.}
+    \item \fontsize{11}{15}\selectfont \textbf{محليا:} \ECESContent{exec_macro_local_ar}{مؤشرات لاستقرار اقتصادي كلي خلال النصف الأول من عام 2025 بسبب تحسن السياحة واستثمارات رأس الحكمة.}
+\end{itemize}
+
+
+\end{tikzpicture}
+
+% Reset Geometry
+\restoregeometry

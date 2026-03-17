@@ -1,0 +1,79 @@
+% =========================================================
+% PREAMBLE: PACKAGES & DESIGN SETUP (CORRECTED)
+% =========================================================
+
+% 1. Page Layout
+\usepackage[margin=0in]{geometry} % No margins for full-page background images
+
+% 2. Graphics and Colors
+\usepackage{graphicx}
+\usepackage{tikz}       % For precise absolute positioning
+\usepackage{xcolor}
+
+% 3. Fonts and Links
+\usepackage{fontspec}
+\usepackage[hidelinks]{hyperref}  % For clickable links
+
+% 4. Font Setup
+\setmainfont{SinkinSans}[
+    Path = fonts/,
+    Extension = .otf,      
+    UprightFont = *-400Regular, 
+    BoldFont = *-800Black,
+]
+
+% 5. Graphics Path
+% Tells LaTeX to look inside these folders for images
+\graphicspath{{./images/static/}{./images/charts/}}
+
+% 6. Custom Color Definitions
+\definecolor{ecesteal}{HTML}{005963}   % Dark Teal (Main Text)
+\definecolor{ecestitle}{HTML}{00b5e2}  % Cyan (for "Contents")
+\definecolor{eceslink}{HTML}{0066cc}   % Blue (for URL)
+% Local colors used in Executive Summary
+\definecolor{textgreen}{HTML}{4CAF50}
+\definecolor{textpurple}{HTML}{C2185B}
+\definecolor{textblue}{HTML}{2196F3}
+\definecolor{textdark}{HTML}{333333}
+
+\usepackage{catchfile}  % For reading override files
+
+\newcommand{\ECESContent}[2]{%
+  \IfFileExists{overrides/#1.tex}{%
+    \input{overrides/#1.tex}%
+  }{%
+    #2%
+  }%
+}
+
+% 9. Automatic Backgrounds & Page Numbering
+\usepackage{eso-pic}
+
+% Create a variable to store the current background image filename
+\def\CurrentBgImage{con_bg.png} % Default background
+
+% Create a switch to easily turn page numbers on/off (e.g., off for cover page)
+\newif\ifShowPageNum
+\ShowPageNumtrue
+
+% Command to change the background image easily in your document
+\newcommand{\SetBgImage}[1]{
+    \def\CurrentBgImage{#1}
+}
+
+% Set up the universal background to automatically apply to EVERY page
+\AddToShipoutPictureBG{%
+    \begin{tikzpicture}[remember picture, overlay]
+        % 1. Draw the Background Image dynamically
+        \node[anchor=north west, inner sep=0pt] at (current page.north west) {
+            \includegraphics[width=\paperwidth, height=\paperheight]{\CurrentBgImage}
+        };
+        
+        % 2. Draw the Page Number (only if \ShowPageNum is true)
+        \ifShowPageNum
+            \node[anchor=south west] at ([xshift=1cm, yshift=1.2cm]current page.south west) {
+                \fontsize{14}{14}\selectfont \textbf{\thepage}
+            };
+        \fi
+    \end{tikzpicture}
+}

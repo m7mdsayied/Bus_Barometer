@@ -1,0 +1,73 @@
+% =========================================================
+% PAGE 2: TABLE OF CONTENTS (ARABIC) - DYNAMIC
+% =========================================================
+
+\begin{tikzpicture}[remember picture, overlay]
+
+    % 2. HEADER TEXT
+    % Main Title - Centered at the top
+    \node[anchor=north] at ([yshift=-3.5cm]current page.north) {
+        \textarabic{%
+            \fontsize{40}{48}\selectfont \textbf{\color{ecesteal} بارومتر الأعمال}%
+        }
+    };
+    
+    % Subtitles
+    % Issue Number (Right Side)
+    \node[anchor=north east] at ([xshift=-3cm, yshift=-6cm]current page.north east) {
+        \textarabic{%
+            \fontsize{18}{22}\selectfont \textbf{\color{ecesteal} العدد \IssueNumber}%
+        }
+    };
+    
+    % Date (Left Side)
+    \node[anchor=north west] at ([xshift=3cm, yshift=-6cm]current page.north west) {
+        \textarabic{%
+            \fontsize{18}{22}\selectfont \textbf{\color{ecesteal} \CurrentQuarterText}%
+        }
+    };
+
+    % 3. TABLE OF CONTENTS LIST
+    % Anchored to the Top-Right, shifted Left (-5cm) to avoid the Gauge Icons
+    \node[anchor=north east, align=right] at ([xshift=-5cm, yshift=-9cm]current page.north east) {
+        
+        % Minipage with RTL setting is crucial for the list to look right
+        \begin{minipage}{14cm}
+            \setRTL 
+            \setlength{\parskip}{0.6cm} % Vertical space between items
+            
+            % TITLE: CONTENTS
+            {\fontsize{24}{28}\selectfont \textbf{\color{ecestitle} المحتويات}}
+            \vspace{0.5cm} % Space after title
+            
+            % LIST ITEMS
+            \fontsize{14}{20}\selectfont \bfseries \color{textdark}
+            
+            % Item 1
+            ملخص تنفيذي \dotfill \pageref{sec:ar_exec_summary} \par
+            
+            % Item 2
+            التقرير التفصيلي \dotfill \pageref{sec:ar_detailed_report} \par
+            
+            % Item 3
+            المنهجية \dotfill \pageref{sec:ar_methodology} \par
+            
+            % Item 4
+            مؤشر بارومتر الأعمال \dotfill \pageref{sec:ar_bbi} \par
+            
+            % Item 5
+            أولا: تقييم الأداء والتوقعات وفقا للمؤشر الإجمالي \dotfill \pageref{sec:ar_eval_overall} \par
+            
+            % Item 6 (Multi-line handling)
+            ثانيا: المعوقات التي واجهت مجتمع الأعمال خلال الربع محل الدراسة، وأولويات تحسين مناخ الأعمال من وجهة نظر شركات العينة \dotfill \pageref{sec:ar_constraints} \par
+            
+            % Item 7
+            ثالثا: تقييم الأداء والتوقعات وفقا للمؤشرات الفرعية \dotfill \pageref{sec:ar_eval_sub} \par
+            
+            % Item 8
+            ملحق الجداول \dotfill \pageref{sec:ar_appendix} \par
+            
+        \end{minipage}
+    };
+
+\end{tikzpicture}
