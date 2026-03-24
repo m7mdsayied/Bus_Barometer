@@ -4,6 +4,7 @@ import re
 import subprocess
 import base64
 import shutil
+import time
 
 # ==========================================
 # 1. CONFIGURATION & THEME
@@ -19,29 +20,75 @@ st.set_page_config(
 # 0. AUTHENTICATION SYSTEM
 # ==========================================
 import json
-
+import bcrypt
+import logging
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+ACTIVITY_LOG = os.path.join(os.path.dirname(__file__), "activity.log")
+SESSION_TIMEOUT_MINUTES = 30
+
+# ── Activity Logger ─────────────────────────────────────
+_activity_logger = logging.getLogger("eces_activity")
+_activity_logger.setLevel(logging.INFO)
+if not _activity_logger.handlers:
+    _fh = logging.FileHandler(ACTIVITY_LOG, encoding="utf-8")
+    _fh.setFormatter(logging.Formatter("%(asctime)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+    _activity_logger.addHandler(_fh)
+
+def log_activity(action: str, user: str = "", detail: str = ""):
+    """Write a line to activity.log."""
+    user = user or st.session_state.get("current_user", "unknown")
+    _activity_logger.info(f"[{user}] {action}" + (f" — {detail}" if detail else ""))
+
+def parse_activity_log():
+    """Parse activity.log into structured records for the Activity Log viewer."""
+    records = []
+    if not os.path.exists(ACTIVITY_LOG):
+        return records
+    with open(ACTIVITY_LOG, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            match = re.match(
+                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \| \[(\w+)\] (\w+)(?: — (.*))?",
+                line
+            )
+            if match:
+                records.append({
+                    "timestamp": match.group(1),
+                    "date": match.group(1)[:10],
+                    "user": match.group(2),
+                    "action": match.group(3),
+                    "detail": match.group(4) or "",
+                })
+    return records
+
+# ── Password Helpers (bcrypt) ───────────────────────────
+def hash_password(plain: str) -> str:
+    """Return a bcrypt hash string for a plaintext password."""
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+def verify_password(plain: str, stored: str) -> bool:
+    """Check a plaintext password against a stored value.
+    Supports both bcrypt hashes and legacy plaintext (for migration)."""
+    if stored.startswith("$2b$") or stored.startswith("$2a$"):
+        return bcrypt.checkpw(plain.encode("utf-8"), stored.encode("utf-8"))
+    # Legacy plaintext comparison (will be auto-migrated on success)
+    return plain == stored
 
 # Role → allowed nav views (English keys)
 ROLE_PERMISSIONS = {
-    "admin":   ["📝 Report Sections", "⚙️ Report Variables", "📊 Chart Manager", "🚀 Finalize & Publish", "👥 User Management"],
+    "admin":   ["📝 Report Sections", "⚙️ Report Variables", "📊 Chart Manager", "🚀 Finalize & Publish", "📋 Activity Log", "👥 User Management"],
     "editor":  ["📝 Report Sections", "⚙️ Report Variables", "📊 Chart Manager"],
     "viewer":  ["📝 Report Sections"],
 }
 
 def load_users() -> dict:
     """Load users from users.json. Returns {} on error."""
-#    try:
-#        with open(USERS_FILE, "r", encoding="utf-8") as f:
-#            return json.load(f)
-#    except Exception:
-#        return {}
     try:
-        # st.secrets["users"] will be a dictionary-like object 
-        # containing all the user keys defined in the TOML above.
-        return dict(st.secrets["users"])
-    except Exception as e:
-        st.error(f"Error loading secrets: {e}")
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
         return {}
 
 def save_users(users: dict):
@@ -50,9 +97,20 @@ def save_users(users: dict):
         json.dump(users, f, indent=4, ensure_ascii=False)
 
 # Session state bootstrap
-for _key, _val in [("authenticated", False), ("current_user", ""), ("current_role", "viewer")]:
+for _key, _val in [("authenticated", False), ("current_user", ""), ("current_role", "viewer"), ("last_active", 0.0)]:
     if _key not in st.session_state:
         st.session_state[_key] = _val
+
+def _session_expired() -> bool:
+    """Return True if the session has been idle longer than SESSION_TIMEOUT_MINUTES."""
+    last = st.session_state.get("last_active", 0.0)
+    if last == 0.0:
+        return False
+    return (time.time() - last) > SESSION_TIMEOUT_MINUTES * 60
+
+def _touch_session():
+    """Update the last-active timestamp to now."""
+    st.session_state["last_active"] = time.time()
 
 def check_login():
     """Verifies credentials and stores user + role in session state."""
@@ -62,10 +120,17 @@ def check_login():
 
     if username in users:
         user = users[username]
-        if user.get("enabled", True) and user["password"] == password:
+        if user.get("enabled", True) and verify_password(password, user["password"]):
+            # Auto-migrate plaintext password to bcrypt on successful login
+            if not (user["password"].startswith("$2b$") or user["password"].startswith("$2a$")):
+                users[username]["password"] = hash_password(password)
+                save_users(users)
+
             st.session_state['authenticated'] = True
             st.session_state['current_user'] = username
             st.session_state['current_role'] = user.get("role", "viewer")
+            _touch_session()
+            log_activity("LOGIN", username)
             st.toast(f"Welcome back, {username}!", icon="🔓")
             return
     st.error("❌ Invalid username or password, or account is disabled.")
@@ -85,7 +150,7 @@ if not st.session_state['authenticated']:
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
-        .login-header { color: #3b82f6; margin-bottom: 1.5rem; }
+        .login-header { color: #1FBACF; margin-bottom: 1.5rem; }
     </style>
     """, unsafe_allow_html=True)
     
@@ -106,6 +171,23 @@ if not st.session_state['authenticated']:
             
     # Stop execution here if not logged in
     st.stop()
+
+# ── Session Timeout Check ───────────────────────────────
+if _session_expired():
+    _expired_user = st.session_state.get("current_user", "")
+    log_activity("SESSION_TIMEOUT", _expired_user)
+    for _k in list(st.session_state.keys()):
+        del st.session_state[_k]
+    st.session_state["authenticated"] = False
+    st.session_state["current_user"] = ""
+    st.session_state["current_role"] = "viewer"
+    st.session_state["last_active"] = 0.0
+    st.warning(f"⏱️ Session expired after {SESSION_TIMEOUT_MINUTES} minutes of inactivity. Please log in again.")
+    st.rerun()
+
+# Keep session alive on every interaction
+_touch_session()
+
 # Initialize Session State for Language
 if 'language' not in st.session_state:
     st.session_state['language'] = 'English'
@@ -113,19 +195,19 @@ if 'language' not in st.session_state:
 # Define Language-Specific Logic
 is_arabic = st.session_state['language'] == 'Arabic'
 text_direction = "rtl" if is_arabic else "ltr"
-font_family = "'Amiri', 'Arial', sans-serif" if is_arabic else "'Source Sans Pro', sans-serif"
+font_family = "'Almarai', 'Amiri', 'Arial', sans-serif" if is_arabic else "'Sinkin Sans', 'Inter', 'Source Sans Pro', sans-serif"
 editor_align = "right" if is_arabic else "left"
 
 st.markdown(f"""
     <style>
-    /* PROFESSIONAL BLUE CORPORATE THEME - Optimized for Performance */
+    /* ECES CORPORATE THEME — Dark Mode with Cyan/Magenta Branding */
 
     :root {{
-        /* Corporate Blue Palette */
-        --primary-blue: #1e3a5f;
-        --secondary-blue: #2563eb;
-        --accent-blue: #3b82f6;
-        --light-blue: #60a5fa;
+        /* ECES Brand Palette */
+        --primary: #1FBACF;
+        --secondary: #1FBACF;
+        --accent: #CF34A9;
+        --light-accent: #5ce0f0;
 
         /* Backgrounds */
         --bg-dark: #0f172a;
@@ -149,7 +231,7 @@ st.markdown(f"""
     .stApp {{
         background: var(--bg-primary);
         color: var(--text-primary);
-        font-family: 'Inter', 'Source Sans Pro', sans-serif;
+        font-family: 'Sinkin Sans', 'Inter', 'Source Sans Pro', sans-serif;
     }}
 
     h1, h2, h3, h4, h5, h6 {{
@@ -173,22 +255,25 @@ st.markdown(f"""
     }}
 
     section[data-testid="stSidebar"] h3 {{
-        color: var(--accent-blue);
+        color: var(--primary);
         font-weight: 600 !important;
         margin-bottom: 0.75rem !important;
     }}
 
-    /* Cards - Simple & Fast */
+    /* Cards */
     .css-card {{
         background: var(--card-bg);
         padding: 1.5rem;
-        border-radius: 8px;
+        border-radius: 12px;
         border: 1px solid var(--border-color);
         margin-bottom: 1rem;
+        box-shadow: 0 6px 40px rgba(143, 143, 143, 0.08);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }}
 
     .css-card:hover {{
-        border-color: var(--accent-blue);
+        border-color: var(--accent);
+        box-shadow: 0 8px 40px rgba(31, 186, 207, 0.12);
     }}
 
     /* Text Editors */
@@ -196,17 +281,20 @@ st.markdown(f"""
         background: var(--bg-secondary) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 8px !important;
+        border-{"right" if is_arabic else "left"}: 3px solid var(--primary) !important;
+        border-radius: 12px !important;
         font-family: {font_family} !important;
         font-size: 16px !important;
         line-height: 1.6 !important;
         direction: {text_direction} !important;
         text-align: {editor_align} !important;
-        padding: 0.75rem !important;
+        padding: 1rem !important;
+        transition: border-color 0.2s ease;
     }}
 
     .stTextArea textarea:focus {{
-        border-color: var(--accent-blue) !important;
+        border-color: var(--accent) !important;
+        border-{"right" if is_arabic else "left"}-color: var(--accent) !important;
         outline: none !important;
     }}
 
@@ -215,25 +303,27 @@ st.markdown(f"""
         background: var(--card-bg);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        padding: 0.5rem 1.25rem;
         font-weight: 500;
+        transition: all 0.3s ease;
     }}
 
     div.stButton > button:hover {{
-        border-color: var(--accent-blue);
-        color: var(--light-blue);
+        border-color: var(--accent);
+        color: var(--light-accent);
     }}
 
     button[kind="primary"] {{
-        background: var(--secondary-blue) !important;
+        background: var(--primary) !important;
         border: none !important;
         color: white !important;
         font-weight: 600 !important;
+        transition: all 0.3s ease;
     }}
 
     button[kind="primary"]:hover {{
-        background: var(--accent-blue) !important;
+        background: var(--accent) !important;
     }}
 
     /* Form Elements */
@@ -241,7 +331,7 @@ st.markdown(f"""
     .stRadio > div {{
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border-radius: 12px;
     }}
 
     /* Status Messages */
@@ -261,14 +351,14 @@ st.markdown(f"""
     }}
 
     .stInfo {{
-        background: rgba(59, 130, 246, 0.1) !important;
-        border-left: 3px solid var(--accent-blue) !important;
+        background: rgba(31, 186, 207, 0.1) !important;
+        border-left: 3px solid var(--primary) !important;
     }}
 
     /* PDF Viewer */
     iframe {{
         border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border-radius: 12px;
         background: white;
     }}
 
@@ -276,7 +366,7 @@ st.markdown(f"""
     div[data-testid="stExpander"] {{
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border-radius: 12px;
         margin-bottom: 0.75rem;
     }}
 
@@ -284,7 +374,23 @@ st.markdown(f"""
     .stFileUploader > div {{
         background: var(--card-bg);
         border: 1px dashed var(--border-color);
-        border-radius: 6px;
+        border-radius: 12px;
+    }}
+
+    /* Metrics */
+    div[data-testid="stMetric"] {{
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+    }}
+
+    div[data-testid="stMetric"] label {{
+        color: var(--text-secondary) !important;
+    }}
+
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
+        color: var(--primary) !important;
     }}
 
     /* Scrollbar */
@@ -303,7 +409,7 @@ st.markdown(f"""
     }}
 
     ::-webkit-scrollbar-thumb:hover {{
-        background: var(--accent-blue);
+        background: var(--primary);
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -537,30 +643,55 @@ def parse_latex_log(log_path):
     return "\n\n".join(errors) if errors else "Unknown error. Check syntax."
 
 def render_toolbar():
-    # Toolbar text logic adjusted for current language if needed (optional)
+    """Render LaTeX quick-insert toolbar with 3 rows of helpers."""
     st.markdown("##### 🛠️ Quick Tools")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
+
     def show_hint(msg, code):
         st.toast(msg, icon="💡")
         st.sidebar.code(code, language="latex")
         st.sidebar.info("Code copied to sidebar! ↖️")
 
-    with col1:
-        if st.button("Bold", width='stretch'): show_hint("Bold Text", r"\textbf{ Text }")
-    with col2:
-        if st.button("Italic", width='stretch'): show_hint("Italic Text", r"\textit{ Text }")
-    with col3:
-        if st.button("% Sign", width='stretch'): show_hint("Escape %", r"\%")
-    with col4:
-        if st.button("List", width='stretch'):
-            code = r"""\begin{itemize}
-    \item Point 1
-    \item Point 2
-\end{itemize}"""
-            show_hint("Bulleted List", code)
-    with col5:
-        if st.button("New Line", width='stretch'): show_hint("Line Break", r"\\")
+    # Row 1 — Basic formatting
+    r1 = st.columns(5)
+    with r1[0]:
+        if st.button("Bold", width='stretch', key="tb_bold"): show_hint("Bold Text", r"\textbf{Text}")
+    with r1[1]:
+        if st.button("Italic", width='stretch', key="tb_italic"): show_hint("Italic Text", r"\textit{Text}")
+    with r1[2]:
+        if st.button("Underline", width='stretch', key="tb_underline"): show_hint("Underline", r"\underline{Text}")
+    with r1[3]:
+        if st.button("% Sign", width='stretch', key="tb_pct"): show_hint("Escape %", r"\%")
+    with r1[4]:
+        if st.button("New Line", width='stretch', key="tb_newline"): show_hint("Line Break", r"\\")
+
+    # Row 2 — Structures
+    r2 = st.columns(5)
+    with r2[0]:
+        if st.button("List", width='stretch', key="tb_list"):
+            show_hint("Bulleted List", "\\begin{itemize}\n    \\item Point 1\n    \\item Point 2\n\\end{itemize}")
+    with r2[1]:
+        if st.button("Numbered", width='stretch', key="tb_enum"):
+            show_hint("Numbered List", "\\begin{enumerate}\n    \\item First\n    \\item Second\n\\end{enumerate}")
+    with r2[2]:
+        if st.button("Footnote", width='stretch', key="tb_fn"): show_hint("Footnote", r"\footnote{Note text}")
+    with r2[3]:
+        if st.button("Table", width='stretch', key="tb_table"):
+            show_hint("Table", "\\begin{tabular}{l|r}\n    Header & Value \\\\\n    \\hline\n    Row 1 & 100 \\\\\n\\end{tabular}")
+    with r2[4]:
+        if st.button("Superscript", width='stretch', key="tb_sup"): show_hint("Superscript", r"\textsuperscript{th}")
+
+    # Row 3 — Special characters
+    r3 = st.columns(5)
+    with r3[0]:
+        if st.button("En-dash –", width='stretch', key="tb_endash"): show_hint("En-dash", "--")
+    with r3[1]:
+        if st.button("Em-dash —", width='stretch', key="tb_emdash"): show_hint("Em-dash", "---")
+    with r3[2]:
+        if st.button("Arabic ،", width='stretch', key="tb_arcomma"): show_hint("Arabic Comma", "،")
+    with r3[3]:
+        if st.button("Color", width='stretch', key="tb_color"): show_hint("Colored Text", r"\textcolor{ECEScyan}{Text}")
+    with r3[4]:
+        if st.button("Spacing", width='stretch', key="tb_vspace"): show_hint("Vertical Space", r"\vspace{0.5cm}")
 
 def generate_preview(content_latex):
     """
@@ -818,9 +949,9 @@ with st.sidebar:
             st.image(logo_path, width=150) # Adjust 150 up or down to your liking
     else:
         st.markdown("""
-            <div style='background: linear-gradient(135deg, #1e3a5f 0%, #3b82f6 100%); 
-                        border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px;
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.3);'>
+            <div style='background: linear-gradient(135deg, #0f172a 0%, #1FBACF 100%); 
+                        border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 15px;
+                        box-shadow: 0 6px 40px rgba(143,143,143,0.12);'>
                 <h2 style='color: white; margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: 1px;'>
                     📊 ECES Suite
                 </h2>
@@ -854,9 +985,39 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     if st.button("🚪 Logout", use_container_width=True):
-        for _k in ["authenticated", "current_user", "current_role", "pdf_ready", "preview_clicked"]:
-            st.session_state[_k] = False if _k == "authenticated" else ""
+        log_activity("LOGOUT")
+        for _k in list(st.session_state.keys()):
+            del st.session_state[_k]
+        st.session_state["authenticated"] = False
+        st.session_state["current_user"] = ""
+        st.session_state["current_role"] = "viewer"
+        st.session_state["last_active"] = 0.0
         st.rerun()
+
+    # ── Self-Service Password Change ────────────────────────
+    with st.expander("🔑 Change Password" if not is_arabic else "🔑 تغيير كلمة المرور", expanded=False):
+        with st.form("change_pw_form", clear_on_submit=True):
+            _cur_pw = st.text_input("Current Password" if not is_arabic else "كلمة المرور الحالية", type="password")
+            _new_pw = st.text_input("New Password" if not is_arabic else "كلمة المرور الجديدة", type="password")
+            _confirm_pw = st.text_input("Confirm New Password" if not is_arabic else "تأكيد كلمة المرور", type="password")
+            _pw_submit = st.form_submit_button("Update" if not is_arabic else "تحديث", use_container_width=True)
+
+            if _pw_submit:
+                _users = load_users()
+                _me = st.session_state["current_user"]
+                if _me not in _users:
+                    st.error("User not found.")
+                elif not verify_password(_cur_pw, _users[_me]["password"]):
+                    st.error("Current password is incorrect." if not is_arabic else "كلمة المرور الحالية غير صحيحة.")
+                elif len(_new_pw) < 6:
+                    st.error("New password must be at least 6 characters." if not is_arabic else "يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل.")
+                elif _new_pw != _confirm_pw:
+                    st.error("Passwords do not match." if not is_arabic else "كلمتا المرور غير متطابقتين.")
+                else:
+                    _users[_me]["password"] = hash_password(_new_pw)
+                    save_users(_users)
+                    log_activity("PASSWORD_CHANGE", _me)
+                    st.success("Password updated!" if not is_arabic else "تم تحديث كلمة المرور!")
 
     st.markdown("---")
     st.markdown("### Control Center")
@@ -868,6 +1029,7 @@ with st.sidebar:
         "⚙️ Report Variables":     "⚙️ متغيرات التقرير",
         "📊 Chart Manager":        "📊 إدارة الرسوم البيانية",
         "🚀 Finalize & Publish":   "🚀 إنهاء ونشر",
+        "📋 Activity Log":         "📋 سجل النشاط",
         "👥 User Management":      "👥 User Management",
     }
 
@@ -894,62 +1056,68 @@ with st.sidebar:
         st.info("💡 **Tip:** 'Preview' compiles the current section only.")
 
     st.markdown("---")
-    st.markdown("### 🔄 Factory Reset")
 
-    reset_help = "استعادة الملفات الأصلية" if is_arabic else "Restore original templates"
+    # Factory Reset is admin-only
+    if st.session_state.get("current_role") == "admin":
+        st.markdown("### 🔄 Factory Reset")
 
-    with st.expander(reset_help, expanded=False):
-        col_reset1, col_reset2 = st.columns(2)
+        reset_help = "استعادة الملفات الأصلية" if is_arabic else "Restore original templates"
 
-        with col_reset1:
-            if st.button("Reset Current File", use_container_width=True, key="reset_current"):
-                if 'current_section_name' in locals():
-                    filename = os.path.basename(SECTION_MAP.get(st.session_state.get('current_section_name', '')))
-                    success, msg = factory_reset(target=filename)
-                    if success:
-                        st.success(msg)
-                        st.rerun()
+        with st.expander(reset_help, expanded=False):
+            col_reset1, col_reset2 = st.columns(2)
+
+            with col_reset1:
+                if st.button("Reset Current File", use_container_width=True, key="reset_current"):
+                    if 'current_section_name' in locals():
+                        filename = os.path.basename(SECTION_MAP.get(st.session_state.get('current_section_name', '')))
+                        success, msg = factory_reset(target=filename)
+                        if success:
+                            log_activity("FACTORY_RESET", detail=f"file: {filename}")
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
                     else:
-                        st.error(msg)
-                else:
-                    st.info("Open a section first to reset it.")
+                        st.info("Open a section first to reset it.")
 
-        with col_reset2:
-            if st.button("Reset All", use_container_width=True, type="primary", key="reset_all_trigger"):
-                st.session_state['confirm_reset_all'] = True
-                st.rerun()
-
-        # Reset only content overrides (slot edits)
-        if st.button(
-            "🔄 Reset All Content Edits" if not is_arabic else "🔄 مسح جميع التعديلات",
-            use_container_width=True, key="reset_overrides"
-        ):
-            success, msg = factory_reset(target="overrides")
-            if success:
-                st.success(msg)
-                st.rerun()
-            else:
-                st.error(msg)
-
-        # Confirmation dialog
-        if st.session_state.get('confirm_reset_all'):
-            st.warning("⚠️ This will restore ALL files to original state!")
-            col_yes, col_no = st.columns(2)
-
-            with col_yes:
-                if st.button("✓ Confirm", use_container_width=True, key="confirm_yes"):
-                    success, msg = factory_reset(target="all")
-                    st.session_state['confirm_reset_all'] = False
-                    if success:
-                        st.success(msg)
-                        st.rerun()
-                    else:
-                        st.error(msg)
-
-            with col_no:
-                if st.button("✗ Cancel", use_container_width=True, key="confirm_no"):
-                    st.session_state['confirm_reset_all'] = False
+            with col_reset2:
+                if st.button("Reset All", use_container_width=True, type="primary", key="reset_all_trigger"):
+                    st.session_state['confirm_reset_all'] = True
                     st.rerun()
+
+            # Reset only content overrides (slot edits)
+            if st.button(
+                "🔄 Reset All Content Edits" if not is_arabic else "🔄 مسح جميع التعديلات",
+                use_container_width=True, key="reset_overrides"
+            ):
+                success, msg = factory_reset(target="overrides")
+                if success:
+                    log_activity("FACTORY_RESET", detail="overrides only")
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+            # Confirmation dialog
+            if st.session_state.get('confirm_reset_all'):
+                st.warning("⚠️ This will restore ALL files to original state!")
+                col_yes, col_no = st.columns(2)
+
+                with col_yes:
+                    if st.button("✓ Confirm", use_container_width=True, key="confirm_yes"):
+                        success, msg = factory_reset(target="all")
+                        st.session_state['confirm_reset_all'] = False
+                        if success:
+                            log_activity("FACTORY_RESET", detail="all files")
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+
+                with col_no:
+                    if st.button("✗ Cancel", use_container_width=True, key="confirm_no"):
+                        st.session_state['confirm_reset_all'] = False
+                        st.rerun()
 
 # ==========================================
 # 5. VIEW: REPORT SECTIONS (SLOT-BASED)
@@ -958,16 +1126,18 @@ if selected_view == "📝 Report Sections":
     header_text = "📝 محرر المحتوى والمعاينة" if is_arabic else "📝 Content Editor & Preview"
     st.markdown(f"## {header_text}")
 
-    # Section Selector
+    # Section Selector (horizontal radio — tab-like)
     section_keys = list(SECTION_MAP.keys())
-    col_sel, col_info = st.columns([1, 2])
-    with col_sel:
-        lbl = "اختر القسم" if is_arabic else "Select Section"
-        current_section_name = st.selectbox(lbl, section_keys)
+    current_section_name = st.radio(
+        "اختر القسم" if is_arabic else "Select Section",
+        section_keys,
+        horizontal=True,
+        label_visibility="collapsed"
+    )
 
     if 'last_section' not in st.session_state:
         st.session_state['last_section'] = current_section_name
-    
+
     if st.session_state['last_section'] != current_section_name:
         st.session_state['last_section'] = current_section_name
         st.session_state['active_preview_pdf'] = None  # Clear the persistent preview
@@ -983,20 +1153,30 @@ if selected_view == "📝 Report Sections":
     slots = extract_slots(raw_content)
     is_slot_based = len(slots) > 0
 
-    with col_info:
-        mode_badge = "Slot Engine ✅" if is_slot_based else "Legacy ⚠️"
-        st.markdown(f"""
-        <div style="padding-top: 25px;">
-            <span style="background:#262730; padding: 5px 10px; border-radius:5px; border:1px solid #383b42;">
-                File: <code>{os.path.basename(current_file_path)}</code> |
-                Mode: <b>{st.session_state['language']}</b> |
-                Engine: <b>{mode_badge}</b>
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+    # Compute section slots early (for progress bar + editor)
+    section_slots = get_all_section_slots(current_file_path) if is_slot_based else []
+    _total_slots = len(section_slots)
+    _edited_slots = sum(1 for _, _, ov, _ in section_slots if ov)
+
+    # Breadcrumb context bar + progress
+    _engine_label = "Slot Engine" if is_slot_based else "Legacy"
+    _sep = '<span style="color:#1FBACF; margin:0 0.4rem;">›</span>'
+    st.markdown(f"""
+    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+        <span style="background:var(--bg-secondary,#334155); padding:6px 14px; border-radius:50px;
+                     border:1px solid #475569; font-size:0.85rem;">
+            <b style="color:#1FBACF;">{st.session_state['language']}</b>
+            {_sep}<code>{os.path.basename(current_file_path)}</code>
+            {_sep}<b>{_engine_label}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if is_slot_based and _total_slots > 0:
+        st.progress(_edited_slots / _total_slots, text=f"{_edited_slots}/{_total_slots} slots customized")
 
     st.markdown("---")
-    col_editor, col_preview = st.columns([1, 1])
+    col_editor, col_preview = st.columns([3, 2])
 
     # ── EDITOR ──────────────────────────────────────────────
     with col_editor:
@@ -1004,15 +1184,12 @@ if selected_view == "📝 Report Sections":
 
         if is_slot_based:
             # ── SLOT-BASED EDITOR (migrated sections) ───────
-            section_slots = get_all_section_slots(current_file_path)
+            # section_slots already computed above for progress bar
 
-            # Editor hints
-            hint_text = (
-                "💡 تلميح: استخدم \\textbf{نص} للخط العريض و \\% لعلامة النسبة"
-                if is_arabic else
-                "💡 Tip: Use \\textbf{text} for bold, \\% for percent sign, \\\\\\\\ for line break"
-            )
-            st.caption(hint_text)
+            # LaTeX toolbar (admin & editor only)
+            if st.session_state.get('current_role') in ('admin', 'editor'):
+                with st.expander("🛠️ LaTeX Quick Tools" if not is_arabic else "🛠️ أدوات LaTeX السريعة", expanded=False):
+                    render_toolbar()
 
             with st.container(height=800):
                 with st.form(f"slot_form_{current_section_name}"):
@@ -1026,15 +1203,15 @@ if selected_view == "📝 Report Sections":
                         if is_overridden:
                             st.markdown(
                                 f"**{label}** &ensp;"
-                                f"<span style='background:#10b981; color:white; padding:2px 8px; "
-                                f"border-radius:4px; font-size:0.75em;'>✏️ Edited</span>",
+                                f"<span style='background:#CF34A9; color:white; padding:3px 10px; "
+                                f"border-radius:50px; font-size:0.75em; font-weight:600;'>✏️ Edited</span>",
                                 unsafe_allow_html=True
                             )
                         else:
                             st.markdown(
                                 f"**{label}** &ensp;"
-                                f"<span style='background:#475569; color:#cbd5e1; padding:2px 8px; "
-                                f"border-radius:4px; font-size:0.75em;'>📄 Default</span>",
+                                f"<span style='background:transparent; color:#94a3b8; padding:3px 10px; "
+                                f"border-radius:50px; font-size:0.75em; border:1px solid #475569;'>📄 Default</span>",
                                 unsafe_allow_html=True
                             )
 
@@ -1095,6 +1272,7 @@ if selected_view == "📝 Report Sections":
                         parts.append(f"{saved_count} saved")
                     if reset_count > 0:
                         parts.append(f"{reset_count} reset")
+                    log_activity("CONTENT_EDIT", detail=f"{current_section_name}: {', '.join(parts)}")
                     st.toast(f"✅ {current_section_name}: {', '.join(parts)}")
                 else:
                     st.toast(f"ℹ️ No changes detected in {current_section_name}")
@@ -1138,6 +1316,7 @@ if selected_view == "📝 Report Sections":
 
             if legacy_save:
                 save_file(current_file_path, legacy_draft)
+                log_activity("CONTENT_EDIT", detail=f"{current_section_name} (legacy)")
                 st.toast(f"✅ Saved {current_section_name}")
 
     # ── PREVIEW ─────────────────────────────────────────────
@@ -1334,6 +1513,115 @@ elif selected_view == "🚀 Finalize & Publish":
                 )
 
 # ==========================================
+# 8b. VIEW: ACTIVITY LOG (Admin only)
+# ==========================================
+elif selected_view == "📋 Activity Log":
+    if st.session_state.get('current_role') != 'admin':
+        st.error("🔒 Access denied. Admin only.")
+        st.stop()
+
+    header = "📋 سجل النشاط" if is_arabic else "📋 Activity Log"
+    st.markdown(f"## {header}")
+
+    records = parse_activity_log()
+
+    # ── Summary Metrics ─────────────────────────────────
+    from datetime import date, timedelta
+    _today_str = str(date.today())
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.metric("Total Events" if not is_arabic else "إجمالي الأحداث", len(records))
+    mc2.metric(
+        "Today" if not is_arabic else "اليوم",
+        sum(1 for r in records if r["date"] == _today_str)
+    )
+    mc3.metric(
+        "Unique Users" if not is_arabic else "المستخدمون",
+        len(set(r["user"] for r in records))
+    )
+    mc4.metric(
+        "Content Edits" if not is_arabic else "تعديلات المحتوى",
+        sum(1 for r in records if r["action"] == "CONTENT_EDIT")
+    )
+
+    st.markdown("")
+
+    # ── Filters ─────────────────────────────────────────
+    col_f1, col_f2, col_f3 = st.columns(3)
+
+    with col_f1:
+        all_users = sorted(set(r["user"] for r in records))
+        _all_label = "الكل" if is_arabic else "All"
+        filter_user = st.selectbox(
+            "User" if not is_arabic else "المستخدم",
+            [_all_label] + all_users
+        )
+
+    with col_f2:
+        all_actions = sorted(set(r["action"] for r in records))
+        filter_action = st.selectbox(
+            "Action" if not is_arabic else "الإجراء",
+            [_all_label] + all_actions
+        )
+
+    with col_f3:
+        _default_start = date.today() - timedelta(days=30)
+        date_range = st.date_input(
+            "Date Range" if not is_arabic else "نطاق التاريخ",
+            value=(_default_start, date.today()),
+            max_value=date.today()
+        )
+
+    # ── Apply Filters ───────────────────────────────────
+    filtered = records
+    if filter_user != _all_label:
+        filtered = [r for r in filtered if r["user"] == filter_user]
+    if filter_action != _all_label:
+        filtered = [r for r in filtered if r["action"] == filter_action]
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        _start, _end = str(date_range[0]), str(date_range[1])
+        filtered = [r for r in filtered if _start <= r["date"] <= _end]
+
+    # Reverse chronological, cap at 500
+    filtered = list(reversed(filtered))
+    _display_cap = 500
+    _total_filtered = len(filtered)
+    filtered = filtered[:_display_cap]
+
+    st.markdown("---")
+
+    # ── Data Table ──────────────────────────────────────
+    if filtered:
+        import pandas as pd
+        df = pd.DataFrame(filtered)
+        st.dataframe(
+            df[["timestamp", "user", "action", "detail"]],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "timestamp": st.column_config.TextColumn(
+                    "Timestamp" if not is_arabic else "الوقت", width="medium"
+                ),
+                "user": st.column_config.TextColumn(
+                    "User" if not is_arabic else "المستخدم", width="small"
+                ),
+                "action": st.column_config.TextColumn(
+                    "Action" if not is_arabic else "الإجراء", width="small"
+                ),
+                "detail": st.column_config.TextColumn(
+                    "Details" if not is_arabic else "التفاصيل", width="large"
+                ),
+            }
+        )
+        _cap_note = f" (showing latest {_display_cap})" if _total_filtered > _display_cap else ""
+        st.caption(
+            f"{'عرض' if is_arabic else 'Showing'} {len(filtered)} "
+            f"{'من' if is_arabic else 'of'} {len(records)} "
+            f"{'سجل' if is_arabic else 'entries'}{_cap_note}"
+        )
+    else:
+        st.info("No matching records." if not is_arabic else "لا توجد سجلات مطابقة.")
+
+# ==========================================
 # 9. VIEW: USER MANAGEMENT (Admin only)
 # ==========================================
 elif selected_view == "👥 User Management":
@@ -1374,8 +1662,9 @@ elif selected_view == "👥 User Management":
                 elif new_username in users:
                     st.error(f"User '{new_username}' already exists.")
                 else:
-                    users[new_username] = {"password": new_password, "role": new_role, "enabled": True}
+                    users[new_username] = {"password": hash_password(new_password), "role": new_role, "enabled": True}
                     save_users(users)
+                    log_activity("USER_CREATED", detail=f"{new_username} as {new_role}")
                     st.success(f"✅ User '{new_username}' created as **{new_role}**.")
                     st.rerun()
 
@@ -1397,10 +1686,11 @@ elif selected_view == "👥 User Management":
 
         with col_pass:
             new_pass = st.text_input(
-                "pw", value=info["password"],
+                "pw", value="",
                 type="password",
                 label_visibility="collapsed",
-                key=f"pw_{username}"
+                key=f"pw_{username}",
+                placeholder="New password (leave blank to keep)"
             )
 
         with col_role:
@@ -1427,10 +1717,14 @@ elif selected_view == "👥 User Management":
             if st.button("💾", key=f"save_{username}", use_container_width=True, help="Save changes"):
                 if new_pass and len(new_pass) < 6:
                     st.toast(f"⚠️ Password too short for {username}.", icon="⚠️")
+                elif username == st.session_state['current_user'] and new_role != "admin":
+                    st.toast("⚠️ You cannot downgrade your own admin role.", icon="⚠️")
                 else:
-                    users[username]["password"] = new_pass if new_pass else info["password"]
+                    if new_pass:
+                        users[username]["password"] = hash_password(new_pass)
                     users[username]["role"] = new_role
                     save_users(users)
+                    log_activity("USER_EDITED", detail=f"{username} → role={new_role}" + (", password changed" if new_pass else ""))
                     st.toast(f"✅ Saved changes for {username}.", icon="✅")
                     st.rerun()
 
@@ -1451,6 +1745,7 @@ elif selected_view == "👥 User Management":
                     del users[username]
                     save_users(users)
                     st.session_state.pop(f"confirm_del_{username}", None)
+                    log_activity("USER_DELETED", detail=username)
                     st.toast(f"🗑️ User '{username}' deleted.", icon="🗑️")
                     st.rerun()
             with cc2:
