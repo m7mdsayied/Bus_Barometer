@@ -68,16 +68,20 @@ def render(ctx):
                                 _dlg_delete_chart(filepath, filename)
                     st.image(filepath, use_container_width=True)
                     if _can_edit:
+                        _up_key = f"up_{directory}_{filename}"
                         uploaded = st.file_uploader(
                             f"Replace {filename}", type=["png", "jpg", "jpeg"],
-                            key=f"up_{directory}_{filename}",
+                            key=_up_key,
                         )
                         if uploaded:
-                            with open(filepath, "wb") as f:
-                                f.write(uploaded.getbuffer())
-                            log_activity("CHART_UPDATED", detail=filename)
-                            st.toast(f"✅ Updated {filename}")
-                            st.rerun()
+                            _fid = f"{uploaded.name}_{uploaded.size}"
+                            if st.session_state.get(f"_saved_{_up_key}") != _fid:
+                                with open(filepath, "wb") as f:
+                                    f.write(uploaded.getbuffer())
+                                log_activity("CHART_UPDATED", detail=filename)
+                                st.session_state[f"_saved_{_up_key}"] = _fid
+                                st.toast(f"✅ Updated {filename}")
+                                st.rerun()
 
     with tab_charts:
         _f_col, _u_col = st.columns([3, 2])
@@ -112,11 +116,14 @@ def render(ctx):
                         if not any(_save_name.lower().endswith(e) for e in (".png", ".jpg", ".jpeg")):
                             _save_name += ".png"
                         _dest = os.path.join(ctx.ACTIVE_CHARTS_DIR, _save_name)
-                        with open(_dest, "wb") as f:
-                            f.write(_new_file.getbuffer())
-                        log_activity("CHART_UPLOADED", detail=_save_name)
-                        st.toast(f"✅ {_save_name} uploaded.", icon="📊")
-                        st.rerun()
+                        _fid = f"{_new_file.name}_{_new_file.size}"
+                        if st.session_state.get("_saved_new_chart") != _fid:
+                            with open(_dest, "wb") as f:
+                                f.write(_new_file.getbuffer())
+                            log_activity("CHART_UPLOADED", detail=_save_name)
+                            st.session_state["_saved_new_chart"] = _fid
+                            st.toast(f"✅ {_save_name} uploaded.", icon="📊")
+                            st.rerun()
 
         render_image_manager(ctx.ACTIVE_CHARTS_DIR, filter_files=_filter_files, allow_delete=True)
 
