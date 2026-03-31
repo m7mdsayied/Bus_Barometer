@@ -112,7 +112,10 @@ def render(ctx):
                     elif not _new_file:
                         st.error("Please select an image file.")
                     else:
-                        _save_name = _new_name.strip()
+                        _save_name = os.path.basename(_new_name.strip())
+                        if not _save_name or "/" in _save_name or "\\" in _save_name:
+                            st.error("Invalid filename.")
+                            st.stop()
                         if not any(_save_name.lower().endswith(e) for e in (".png", ".jpg", ".jpeg")):
                             _save_name += ".png"
                         _dest = os.path.join(ctx.ACTIVE_CHARTS_DIR, _save_name)

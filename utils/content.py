@@ -82,10 +82,11 @@ def factory_reset(target: str = "all"):
     try:
         if target == "overrides":
             if os.path.exists(OVERRIDES_DIR):
-                count = sum(
-                    1 for f in os.listdir(OVERRIDES_DIR)
-                    if f.endswith(".tex") and not os.remove(os.path.join(OVERRIDES_DIR, f))
-                )
+                count = 0
+                for f in os.listdir(OVERRIDES_DIR):
+                    if f.endswith(".tex"):
+                        os.remove(os.path.join(OVERRIDES_DIR, f))
+                        count += 1
                 return True, f"Cleared {count} content overrides"
             return True, "No overrides to clear"
 

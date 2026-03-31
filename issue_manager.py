@@ -249,7 +249,14 @@ def save_issue(
     info = get_current_issue_info(lang, base_dir)
     issue_num = info["issue_num"]
 
+    # Reject non-numeric issue numbers to prevent path traversal
+    if not str(issue_num).isdigit():
+        return False, f"Invalid issue number: '{issue_num}'. Must be numeric."
+
     dest = base / "issues" / lang / str(issue_num)
+    # Confirm dest stays within the issues directory (defense in depth)
+    if not str(dest.resolve()).startswith(str((base / "issues").resolve())):
+        return False, "Invalid issue path."
     if dest.exists() and not overwrite:
         return False, f"ALREADY_EXISTS:{issue_num}"
 

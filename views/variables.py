@@ -39,9 +39,9 @@ def render(ctx):
         if st.form_submit_button("💾 Update Variables", type="primary"):
             new_config = raw_config
             for key, val in updates.items():
-                safe_val = val.replace("\\", "\\\\")
                 regex_replace = r"(\\newcommand\{\\" + key + r"\}\{)(.*?)(\})"
-                new_config = re.sub(regex_replace, r"\g<1>" + safe_val + r"\g<3>", new_config)
+                # Use a lambda so val is never interpreted as a regex replacement string
+                new_config = re.sub(regex_replace, lambda m, v=val: m.group(1) + v + m.group(3), new_config)
             save_file(ctx.CONFIG_FILE, new_config)
             st.toast("Updated!", icon="⚙️")
             st.rerun()

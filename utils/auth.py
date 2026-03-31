@@ -24,6 +24,8 @@ if not _activity_logger.handlers:
 def log_activity(action: str, user: str = "", detail: str = ""):
     """Write a structured line to activity.log."""
     user = user or st.session_state.get("current_user", "unknown")
+    # Strip newlines to prevent log injection
+    detail = detail.replace("\n", " ").replace("\r", " ")
     _activity_logger.info(f"[{user}] {action}" + (f" — {detail}" if detail else ""))
 
 
