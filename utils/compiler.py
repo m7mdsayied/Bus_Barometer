@@ -143,17 +143,39 @@ def display_pdf(pdf_path: str):
 
         doc = fitz.open(pdf_path)
         total_pages = len(doc)
-        page_num = st.slider(
-            "Page", 1, total_pages, 1,
-            key=f"pdf_page_{os.path.basename(pdf_path)}",
-        ) - 1
-        page = doc[page_num]
-        pixmap = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
-        st.image(
-            pixmap.tobytes("png"),
-            use_container_width=True,
-            caption=f"Page {page_num + 1} of {total_pages}",
-        )
+
+        # Page state keyed per PDF so navigation survives reruns
+        _page_key = f"pdf_page_{os.path.basename(pdf_path)}"
+        if _page_key not in st.session_state:
+            st.session_state[_page_key] = 0
+
+        # Prev / Next navigation
+        _c1, _c2, _c3 = st.columns([1, 2, 1])
+        with _c1:
+            if st.button("◀ Prev", key=f"{_page_key}_prev",
+                         disabled=st.session_state[_page_key] == 0,
+                         use_container_width=True):
+                st.session_state[_page_key] -= 1
+                st.rerun()
+        with _c2:
+            st.markdown(
+                f"<div style='text-align:center;padding:6px 0;font-size:0.85rem;"
+                f"color:#94a3b8;font-weight:600;'>"
+                f"Page {st.session_state[_page_key] + 1} of {total_pages}</div>",
+                unsafe_allow_html=True,
+            )
+        with _c3:
+            if st.button("Next ▶", key=f"{_page_key}_next",
+                         disabled=st.session_state[_page_key] >= total_pages - 1,
+                         use_container_width=True):
+                st.session_state[_page_key] += 1
+                st.rerun()
+
+        # Render at 2.5× for crisp, readable text
+        page = doc[st.session_state[_page_key]]
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5))
+        st.image(pixmap.tobytes("png"), use_container_width=True)
+
     except ImportError:
         st.warning("pymupdf not installed. Run: pip install pymupdf")
     except Exception as e:
