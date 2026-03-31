@@ -80,7 +80,7 @@ def _dlg_delete_section(lang: str, sec_id: str, sec_title: str):
 # ── Render ────────────────────────────────────────────────────────────────────
 def render(ctx):
     page_header("📝", "Content Editor &amp; Preview",
-                "Edit slot content and preview compiled PDF sections.", "#1FBACF")
+                "Step 4 of 5 · Edit slot content and preview compiled PDF sections.", "#1FBACF")
 
     section_keys = list(ctx.SECTION_MAP.keys())
     _cs_data = load_custom_sections()
@@ -414,3 +414,10 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
 })();
 </script>
 """, height=0)
+
+    if st.session_state.get("current_role") in ("admin", "editor"):
+        st.divider()
+        if st.button("→ Continue to Step 5: Finalize & Publish", type="primary",
+                     key="next_step_sections"):
+            st.session_state["_pending_nav"] = "🚀 Finalize & Publish"
+            st.rerun()

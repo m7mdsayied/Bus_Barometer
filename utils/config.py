@@ -18,19 +18,35 @@ USERS_FILE    = os.path.join(BASE_DIR, "users.json")
 ACTIVITY_LOG  = os.path.join(BASE_DIR, "activity.log")
 SESSION_TIMEOUT_MINUTES = 30
 
-# ── Role Permissions ───────────────────────────────────────────────────
+# ── Role Permissions (ordered to match the report-production workflow) ─
 ROLE_PERMISSIONS = {
-    "admin":  [
-        "📝 Report Sections", "⚙️ Report Variables", "📊 Chart Manager",
-        "🚀 Finalize & Publish", "📁 Issue Manager", "📋 Activity Log",
+    "admin": [
+        "📁 Issue Manager",
+        "⚙️ Report Variables",
+        "📊 Chart Manager",
+        "📝 Report Sections",
+        "🚀 Finalize & Publish",
+        "📋 Activity Log",
         "👥 User Management",
     ],
     "editor": [
-        "📝 Report Sections", "⚙️ Report Variables",
-        "📊 Chart Manager", "📁 Issue Manager",
+        "📁 Issue Manager",
+        "⚙️ Report Variables",
+        "📊 Chart Manager",
+        "📝 Report Sections",
+        "🚀 Finalize & Publish"
     ],
     "viewer": ["📝 Report Sections"],
 }
+
+# ── Workflow Step Definitions ──────────────────────────────────────────
+WORKFLOW_STEPS = [
+    {"num": 1, "view_key": "📁 Issue Manager",     "label": "Issue Manager",     "short": "Pick / create issue",    "icon": "📁"},
+    {"num": 2, "view_key": "⚙️ Report Variables",  "label": "Report Variables",  "short": "Set number & dates",     "icon": "⚙️"},
+    {"num": 3, "view_key": "📊 Chart Manager",      "label": "Chart Manager",     "short": "Upload chart images",    "icon": "📊"},
+    {"num": 4, "view_key": "📝 Report Sections",    "label": "Report Sections",   "short": "Edit written content",   "icon": "📝"},
+    {"num": 5, "view_key": "🚀 Finalize & Publish", "label": "Finalize & Publish","short": "Compile & download PDF", "icon": "🚀"},
+]
 
 # ── Project File Maps ──────────────────────────────────────────────────
 PROJECT_CONFIG = {

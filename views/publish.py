@@ -16,7 +16,7 @@ def render(ctx):
     target_main = ctx.active_config["main"]
     page_header(
         "🚀", "Compile Final Report",
-        f"Target: <code>{target_main}</code> · Engine: XeLaTeX "
+        f"Step 5 of 5 · Target: <code>{target_main}</code> · Engine: XeLaTeX "
         f"({st.session_state['language']} fonts &amp; layout)",
         "#10b981",
     )
@@ -108,3 +108,9 @@ def render(ctx):
                     )
         else:
             st.caption("No reports yet.")
+
+    st.divider()
+    st.success(
+        "✅ **Workflow Complete** — you have reached the final step. "
+        "Compile the report above and download your PDF."
+    )

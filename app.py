@@ -22,7 +22,7 @@ import issue_manager
 
 from utils.config import (
     BASE_DIR, CHARTS_EN_DIR, CHARTS_AR_DIR, STATIC_IMG_DIR,
-    ROLE_PERMISSIONS, PROJECT_CONFIG, SESSION_TIMEOUT_MINUTES,
+    ROLE_PERMISSIONS, WORKFLOW_STEPS, PROJECT_CONFIG, SESSION_TIMEOUT_MINUTES,
 )
 from utils.auth import (
     check_login, hash_password, load_users, log_activity,
@@ -307,10 +307,58 @@ with st.sidebar:
                     st.success("Password updated!")
 
     st.markdown("---")
-    st.markdown("**Navigation**")
 
-    _allowed = ROLE_PERMISSIONS.get(st.session_state["current_role"], ["📝 Report Sections"])
-    selected_view = st.radio("Navigation", _allowed, label_visibility="collapsed")
+    # ── Pending navigation relay (from "Next Step" buttons in views) ─
+    if "_pending_nav" in st.session_state:
+        st.session_state["nav_radio"] = st.session_state.pop("_pending_nav")
+
+    # ── Visited-steps tracking ────────────────────────────────────────
+    st.session_state.setdefault("visited_steps", set())
+    _allowed = ROLE_PERMISSIONS.get(st.session_state.get("current_role", "viewer"), ["📝 Report Sections"])
+    _view_to_step = {s["view_key"]: s["num"] for s in WORKFLOW_STEPS}
+    _current_step_num = _view_to_step.get(st.session_state.get("nav_radio", _allowed[0]), 0)
+    _accessible_keys = {s["view_key"] for s in WORKFLOW_STEPS if s["view_key"] in _allowed}
+
+    # ── Visual stepper (decorative — click navigation via radio below) ─
+    _stepper_html = (
+        "<div style='margin-bottom:6px;font-size:0.7rem;font-weight:700;"
+        "color:#64748b;letter-spacing:0.08em;text-transform:uppercase;'>Workflow</div>"
+    )
+    for _s in WORKFLOW_STEPS:
+        if _s["view_key"] not in _accessible_keys:
+            continue
+        _n = _s["num"]
+        _is_active  = (_n == _current_step_num)
+        _is_visited = (_n in st.session_state["visited_steps"] and not _is_active)
+        if _is_active:
+            _cbg, _ccol, _lcol, _op = "#1FBACF", "white",   "#f1f5f9", "1"
+        elif _is_visited:
+            _cbg, _ccol, _lcol, _op = "#134e4a", "#6ee7b7", "#94a3b8", "1"
+        else:
+            _cbg, _ccol, _lcol, _op = "#334155", "#64748b", "#64748b", "0.6"
+        _stepper_html += (
+            f"<div style='display:flex;align-items:flex-start;gap:8px;"
+            f"margin-bottom:6px;opacity:{_op};'>"
+            f"<div style='min-width:22px;height:22px;border-radius:50%;"
+            f"background:{_cbg};color:{_ccol};font-size:0.7rem;font-weight:700;"
+            f"display:flex;align-items:center;justify-content:center;"
+            f"margin-top:1px;flex-shrink:0;'>{_n}</div>"
+            f"<div><div style='font-size:0.78rem;font-weight:600;color:{_lcol};'>"
+            f"{_s['label']}</div>"
+            f"<div style='font-size:0.68rem;color:#64748b;line-height:1.2;'>"
+            f"{_s['short']}</div></div></div>"
+        )
+    st.markdown(_stepper_html, unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom:4px;'></div>", unsafe_allow_html=True)
+
+    # ── Navigation radio ──────────────────────────────────────────────
+    st.markdown("**Navigation**")
+    selected_view = st.radio("Navigation", _allowed, label_visibility="collapsed", key="nav_radio")
+
+    # Mark the active step as visited
+    _active_step = _view_to_step.get(selected_view, 0)
+    if _active_step:
+        st.session_state["visited_steps"].add(_active_step)
 
     st.markdown("---")
     st.info("💡 **Tip:** 'Preview' compiles the current section only.")

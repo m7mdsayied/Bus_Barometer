@@ -29,7 +29,7 @@ def _dlg_delete_chart(filepath: str, filename: str):
 def render(ctx):
     page_header(
         "📊", "Image &amp; Chart Management",
-        "Upload or replace charts and static images used by the report.",
+        "Step 3 of 5 · Upload or replace charts and static images used by the report.",
         "#f59e0b",
     )
 
@@ -130,3 +130,8 @@ def render(ctx):
     with tab_static:
         st.caption(f"`{os.path.basename(ctx.STATIC_IMG_DIR)}`")
         render_image_manager(ctx.STATIC_IMG_DIR, allow_delete=_can_edit)
+
+    st.divider()
+    if st.button("→ Continue to Step 4: Report Sections", type="primary", key="next_step_charts"):
+        st.session_state["_pending_nav"] = "📝 Report Sections"
+        st.rerun()

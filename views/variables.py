@@ -10,7 +10,7 @@ from utils.config import VARIABLE_LABELS
 def render(ctx):
     page_header(
         "⚙️", "Global Configuration",
-        f"Active config file: <code>{ctx.active_config['config']}</code>",
+        f"Step 2 of 5 · Active config file: <code>{ctx.active_config['config']}</code>",
         "#6366f1",
     )
 
@@ -45,3 +45,8 @@ def render(ctx):
             save_file(ctx.CONFIG_FILE, new_config)
             st.toast("Updated!", icon="⚙️")
             st.rerun()
+
+    st.divider()
+    if st.button("→ Continue to Step 3: Chart Manager", type="primary", key="next_step_variables"):
+        st.session_state["_pending_nav"] = "📊 Chart Manager"
+        st.rerun()

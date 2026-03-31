@@ -131,8 +131,34 @@ def render(ctx):
 
     page_header(
         "📁", "Issue Manager",
-        "Save the active issue, load a previous one, or start fresh from the blank template.",
+        "Step 1 of 5 · Save the active issue, load a previous one, or start fresh from the blank template.",
         "#8b5cf6",
+    )
+
+    # ── Workflow overview card ────────────────────────────────────────
+    from utils.config import WORKFLOW_STEPS as _WS
+    _steps_html = ""
+    for _w in _WS:
+        _steps_html += (
+            f"<div style='flex:1;text-align:center;padding:0 4px;'>"
+            f"<div style='font-size:1.1rem;'>{_w['icon']}</div>"
+            f"<div style='font-size:0.62rem;font-weight:700;color:#1FBACF;margin:2px 0;'>Step {_w['num']}</div>"
+            f"<div style='font-size:0.65rem;color:#f1f5f9;font-weight:600;line-height:1.2;'>{_w['label']}</div>"
+            f"<div style='font-size:0.6rem;color:#94a3b8;line-height:1.2;margin-top:2px;'>{_w['short']}</div>"
+            f"</div>"
+        )
+        if _w["num"] < len(_WS):
+            _steps_html += (
+                "<div style='flex:0 0 14px;display:flex;align-items:center;"
+                "justify-content:center;color:#475569;font-size:0.9rem;'>›</div>"
+            )
+    st.markdown(
+        "<div style='background:#0f172a;border:1px solid #334155;border-radius:10px;"
+        "padding:12px 16px;margin-bottom:1rem;'>"
+        "<div style='font-size:0.68rem;font-weight:700;color:#64748b;letter-spacing:0.08em;"
+        "text-transform:uppercase;margin-bottom:8px;'>Report Production Workflow</div>"
+        f"<div style='display:flex;align-items:flex-start;'>{_steps_html}</div></div>",
+        unsafe_allow_html=True,
     )
 
     # Language selector — defaults to active report language, user can override
@@ -265,3 +291,6 @@ def render(ctx):
         "**Tip:** After loading an issue or template, go to ⚙️ Report Variables "
         "to update the Issue Number and dates before compiling."
     )
+    if st.button("→ Continue to Step 2: Report Variables", type="primary", key="next_step_issues"):
+        st.session_state["_pending_nav"] = "⚙️ Report Variables"
+        st.rerun()
