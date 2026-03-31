@@ -1,0 +1,412 @@
+"""
+View: Report Sections (slot-based content editor + live preview).
+Dialogs: _dlg_add_section, _dlg_delete_section.
+"""
+import os
+
+import streamlit as st
+import streamlit.components.v1 as _stc
+
+from utils.auth import log_activity
+from utils.compiler import render_toolbar, generate_preview, display_pdf
+from utils.content import (
+    add_custom_section, delete_custom_section,
+    extract_section_items, extract_slots, get_all_section_slots,
+    get_slot_label, load_custom_sections, load_file, save_file, save_slot,
+    reset_slot, parse_latex_blocks, reconstruct_latex,
+    append_text_slot_to_section, append_chart_slot_to_section,
+    remove_text_slot_from_section, remove_chart_slot_from_section,
+    page_header,
+)
+
+
+# ── Dialogs ───────────────────────────────────────────────────────────────────
+@st.dialog("Add New Section")
+def _dlg_add_section(lang: str):
+    _type_icons = {"text": "📝", "chart": "📊", "mixed": "📝+📊", "table": "📋"}
+    st.markdown("Create a new custom section for this report.")
+    _title = st.text_input(
+        "Section Title", placeholder="e.g. Special Analysis", key="dlg_sec_title"
+    )
+    _type = st.radio(
+        "Section Type",
+        list(_type_icons.keys()),
+        format_func=lambda t: f"{_type_icons[t]} {t.capitalize()}",
+        horizontal=True,
+        key="dlg_sec_type",
+    )
+    st.caption({
+        "text":  "Text paragraphs only — no images.",
+        "chart": "Single chart/image — no text slots.",
+        "mixed": "Introduction + chart + analysis paragraphs.",
+        "table": "Table image with caption slot.",
+    }[_type])
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("✅ Create Section", type="primary", use_container_width=True):
+            if not _title.strip():
+                st.error("Title cannot be empty.")
+            else:
+                _ok, _msg = add_custom_section(lang, _title.strip(), _type)
+                if _ok:
+                    log_activity("SECTION_CREATED", detail=f"'{_title}' ({_type}, {lang})")
+                    st.toast(f"Section '{_title}' created!", icon="✅")
+                    st.rerun()
+                else:
+                    st.error(_msg)
+    with c2:
+        if st.button("✗ Cancel", use_container_width=True):
+            st.rerun()
+
+
+@st.dialog("Delete Custom Section?")
+def _dlg_delete_section(lang: str, sec_id: str, sec_title: str):
+    st.warning(
+        f"Remove **{sec_title}** from the section list?\n\n"
+        "The `.tex` file is kept on disk — only the registration is removed."
+    )
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("🗑️ Remove", type="primary", use_container_width=True):
+            delete_custom_section(lang, sec_id)
+            log_activity("SECTION_DELETED", detail=f"'{sec_title}' ({lang})")
+            st.toast(f"Section '{sec_title}' removed.", icon="🗑️")
+            st.rerun()
+    with c2:
+        if st.button("✗ Cancel", use_container_width=True):
+            st.rerun()
+
+
+# ── Render ────────────────────────────────────────────────────────────────────
+def render(ctx):
+    page_header("📝", "Content Editor &amp; Preview",
+                "Edit slot content and preview compiled PDF sections.", "#1FBACF")
+
+    section_keys = list(ctx.SECTION_MAP.keys())
+    _cs_data = load_custom_sections()
+    _cs_lang_key = "ar" if ctx.is_arabic else "en"
+    _custom_ids = {s["title"]: s["id"] for s in _cs_data.get(_cs_lang_key, [])}
+
+    _sel_col, _add_col = st.columns([5, 1])
+    with _sel_col:
+        current_section_name = st.selectbox(
+            "Select Section", section_keys,
+            label_visibility="collapsed", key="section_selectbox",
+        )
+    with _add_col:
+        if st.session_state.get("current_role") in ("admin", "editor"):
+            if st.button("➕", use_container_width=True,
+                         help="Add a new custom section", key="btn_add_section"):
+                _dlg_add_section(st.session_state["language"])
+
+    # Store current section name for sidebar factory reset
+    st.session_state["_current_section_name"] = current_section_name
+
+    if current_section_name in _custom_ids:
+        _cs_id = _custom_ids[current_section_name]
+        if st.session_state.get("current_role") in ("admin", "editor"):
+            if st.button(f"🗑️ Remove '{current_section_name}'",
+                         key="btn_del_section", use_container_width=False):
+                _dlg_delete_section(st.session_state["language"], _cs_id, current_section_name)
+
+    if "last_section" not in st.session_state:
+        st.session_state["last_section"] = current_section_name
+    if st.session_state["last_section"] != current_section_name:
+        st.session_state["last_section"] = current_section_name
+        st.session_state["active_preview_pdf"] = None
+
+    current_file_path = os.path.join(ctx.BASE_DIR, ctx.SECTION_MAP[current_section_name])
+    if not os.path.exists(current_file_path):
+        save_file(current_file_path, "% New Section")
+
+    raw_content = load_file(current_file_path)
+    slots = extract_slots(raw_content)
+    is_slot_based = len(slots) > 0
+
+    section_slots = get_all_section_slots(current_file_path) if is_slot_based else []
+    _total_slots = len(section_slots)
+    _edited_slots = sum(1 for _, _, ov, _ in section_slots if ov)
+
+    _engine_label = "Slot Engine" if is_slot_based else "Legacy"
+    _sep = '<span style="color:#1FBACF; margin:0 0.4rem;">›</span>'
+    st.markdown(f"""
+    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+        <span style="background:var(--bg-secondary,#334155); padding:6px 14px; border-radius:50px;
+                     border:1px solid #475569; font-size:0.85rem;">
+            <b style="color:#1FBACF;">{st.session_state['language']}</b>
+            {_sep}<code>{os.path.basename(current_file_path)}</code>
+            {_sep}<b>{_engine_label}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if is_slot_based and _total_slots > 0:
+        st.progress(_edited_slots / _total_slots,
+                    text=f"{_edited_slots}/{_total_slots} slots customized")
+
+    if is_slot_based and section_slots:
+        _lang_key = st.session_state["language"]
+        _pending_changes = any(
+            st.session_state.get(f"slot_{_lang_key}_{sid}") != cur
+            for sid, cur, _, _ in section_slots
+            if f"slot_{_lang_key}_{sid}" in st.session_state
+        )
+        if _pending_changes:
+            st.warning("⚠️ You have unsaved changes — press **Save All Changes** before switching sections.")
+
+    st.divider()
+    st.markdown("""
+<style>
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child {
+    align-items: flex-start !important;
+}
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
+  > div[data-testid="stColumn"]:last-child,
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
+  > div[data-testid="stVerticalBlockBorderWrapper"]:last-child {
+    position: sticky !important;
+    top: 3.5rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    align-self: flex-start;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    col_editor, col_preview = st.columns([3, 2])
+
+    # ── Editor ────────────────────────────────────────────────────────────────
+    with col_editor:
+        st.markdown("**Edit Content**")
+
+        if is_slot_based:
+            if st.session_state.get("current_role") in ("admin", "editor"):
+                with st.expander("🛠️ LaTeX Quick Tools", expanded=False):
+                    render_toolbar()
+
+            _is_custom_sec = current_section_name in _custom_ids
+            _role = st.session_state.get("current_role", "viewer")
+            _sec_items = extract_section_items(raw_content, ctx.ACTIVE_CHARTS_DIR)
+            _text_slot_ids = []
+
+            for _item in _sec_items:
+                if _item["type"] == "text":
+                    _sid = _item["slot_id"]
+                    _cur = _item["current_text"]
+                    _ov  = _item["is_overridden"]
+                    _text_slot_ids.append(_sid)
+
+                    with st.container(border=True):
+                        _lc, _bc = st.columns([4, 1])
+                        with _lc:
+                            st.markdown(f"**{get_slot_label(_sid)}**")
+                        with _bc:
+                            if _ov:
+                                st.markdown(
+                                    "<span style='background:#CF34A9;color:white;padding:3px 10px;"
+                                    "border-radius:50px;font-size:0.75em;font-weight:600;'>✏️ Edited</span>",
+                                    unsafe_allow_html=True,
+                                )
+                            else:
+                                st.markdown(
+                                    "<span style='color:#94a3b8;padding:3px 10px;"
+                                    "border-radius:50px;font-size:0.75em;border:1px solid #475569;'>📄 Default</span>",
+                                    unsafe_allow_html=True,
+                                )
+                        _h = max(150, min(400, len(_cur) // 2))
+                        st.text_area(
+                            get_slot_label(_sid), value=_cur, height=int(_h),
+                            label_visibility="collapsed",
+                            key=f"slot_{st.session_state['language']}_{_sid}",
+                        )
+                        if _ov:
+                            st.checkbox("↩️ Reset to default", key=f"reset_{_sid}", value=False)
+                        if _is_custom_sec and _role in ("admin", "editor"):
+                            if st.button("🗑️ Remove block", key=f"rm_{_sid}",
+                                         help="Remove this text block"):
+                                remove_text_slot_from_section(current_file_path, _sid)
+                                st.rerun()
+
+                else:  # chart
+                    _fn = _item["filename"]
+                    _fp = _item["filepath"]
+                    with st.container(border=True):
+                        from utils.config import CHART_LABELS
+                        _ch_label = CHART_LABELS.get(_fn.lower(), _fn)
+                        st.markdown(f"📊 **{_ch_label}** &nbsp; `{_fn}`", unsafe_allow_html=True)
+                        if _item["exists"]:
+                            st.image(_fp, use_container_width=True)
+                        else:
+                            st.warning(f"`{_fn}` not uploaded yet — upload below.")
+                        if _role in ("admin", "editor"):
+                            _upl = st.file_uploader(
+                                "Replace image", type=["png", "jpg", "jpeg"],
+                                key=f"upl_inline_{current_section_name}_{_fn}",
+                            )
+                            if _upl:
+                                os.makedirs(os.path.dirname(_fp), exist_ok=True)
+                                with open(_fp, "wb") as _f:
+                                    _f.write(_upl.getbuffer())
+                                log_activity("CHART_UPDATED", detail=_fn)
+                                st.toast(f"✅ {_fn} updated")
+                                st.rerun()
+                        if _is_custom_sec and _role in ("admin", "editor"):
+                            if st.button("🗑️ Remove chart",
+                                         key=f"rm_ch_{_fn}_{current_section_name}",
+                                         help="Remove this chart placeholder"):
+                                remove_chart_slot_from_section(current_file_path, _fn)
+                                st.rerun()
+
+            # Add-block toolbar (custom sections only)
+            if _is_custom_sec and _role in ("admin", "editor"):
+                st.markdown("---")
+                _ab1, _ab2 = st.columns(2)
+                with _ab1:
+                    if st.button("➕ Add Text Block", key="btn_add_text_block", use_container_width=True):
+                        append_text_slot_to_section(current_file_path)
+                        st.rerun()
+                with _ab2:
+                    if st.button("➕ Add Chart Block", key="btn_add_chart_block", use_container_width=True):
+                        append_chart_slot_to_section(current_file_path)
+                        st.rerun()
+
+            # Save all text edits
+            st.markdown("")
+            save_clicked = st.button(
+                "💾 Save All Changes", type="primary", use_container_width=True,
+                key=f"save_slots_{current_section_name}",
+            )
+            if save_clicked:
+                default_map = {sid: dtxt for sid, dtxt in extract_slots(raw_content)}
+                saved_count = reset_count = 0
+
+                for _sid in _text_slot_ids:
+                    _key = f"slot_{st.session_state['language']}_{_sid}"
+                    edited_text = st.session_state.get(_key, "")
+                    if st.session_state.get(f"reset_{_sid}", False):
+                        reset_slot(_sid)
+                        reset_count += 1
+                    else:
+                        default = default_map.get(_sid, "")
+                        if edited_text.strip() != default.strip():
+                            save_slot(_sid, edited_text)
+                            saved_count += 1
+                        else:
+                            reset_slot(_sid)
+
+                if saved_count > 0 or reset_count > 0:
+                    parts = []
+                    if saved_count > 0:
+                        parts.append(f"{saved_count} saved")
+                    if reset_count > 0:
+                        parts.append(f"{reset_count} reset")
+                    log_activity("CONTENT_EDIT", detail=f"{current_section_name}: {', '.join(parts)}")
+                    st.toast(f"✅ {current_section_name}: {', '.join(parts)}")
+                    st.rerun()
+                else:
+                    st.toast(f"ℹ️ No changes detected in {current_section_name}")
+
+        else:
+            # Legacy editor
+            st.caption("⚠️ This section uses the legacy editor. Migrate to slot system for safer editing.")
+            blocks = parse_latex_blocks(raw_content)
+
+            with st.form(f"legacy_form_{current_section_name}"):
+                edited_blocks = []
+                for idx, block in enumerate(blocks):
+                    if block["type"] == "code":
+                        edited_blocks.append(block)
+                    else:
+                        with st.container(border=True):
+                            h = max(150, len(block["content"]) // 1.5)
+                            new_text = st.text_area(
+                                f"Block {idx + 1}", value=block["content"], height=int(h),
+                                label_visibility="collapsed",
+                                key=f"legacy_{st.session_state['language']}_{current_section_name}_{idx}",
+                            )
+                        edited_blocks.append({"type": "text", "content": new_text})
+
+                legacy_save = st.form_submit_button(
+                    "💾 Save to File", type="primary", use_container_width=True
+                )
+
+            legacy_draft = reconstruct_latex(edited_blocks)
+            if legacy_save:
+                save_file(current_file_path, legacy_draft)
+                log_activity("CONTENT_EDIT", detail=f"{current_section_name} (legacy)")
+                st.toast(f"✅ Saved {current_section_name}")
+
+    # ── Preview ───────────────────────────────────────────────────────────────
+    with col_preview:
+        st.markdown("**Live Preview**")
+
+        # Section-scoped keys so preview survives slider reruns but clears on section change
+        _pdf_key = f"preview_pdf_{current_section_name}"
+        _err_key = f"preview_err_{current_section_name}"
+
+        if st.button("👁️ Generate Preview", use_container_width=True, type="primary",
+                     key=f"preview_{current_section_name}"):
+            if is_slot_based:
+                preview_content = load_file(current_file_path)
+            else:
+                preview_content = (
+                    reconstruct_latex(edited_blocks)
+                    if "edited_blocks" in dir()
+                    else raw_content
+                )
+            with st.status("Compiling Preview...", expanded=True) as _status:
+                pdf_path, error_msg = generate_preview(
+                    preview_content,
+                    ctx.PREAMBLE_FILE,
+                    ctx.active_config["config"],
+                    ctx.BASE_DIR,
+                )
+                if pdf_path and os.path.exists(pdf_path):
+                    st.session_state[_pdf_key] = pdf_path
+                    st.session_state[_err_key] = None
+                    _status.update(label="Ready!", state="complete", expanded=False)
+                else:
+                    st.session_state[_pdf_key] = None
+                    st.session_state[_err_key] = error_msg
+                    _status.update(label="Failed", state="error")
+
+        # Always render from stored state — survives page-slider reruns
+        _stored_pdf = st.session_state.get(_pdf_key)
+        if _stored_pdf and os.path.exists(_stored_pdf):
+            display_pdf(_stored_pdf)
+        elif st.session_state.get(_err_key):
+            st.error("⚠️ LaTeX Compilation Error")
+            with st.expander("Error Details", expanded=True):
+                st.code(st.session_state[_err_key], language="tex")
+        else:
+            st.info("Click Preview to compile this section.")
+
+    # JS: enforce sticky preview column after Streamlit re-renders
+    _stc.html("""
+<script>
+(function() {
+  function applySticky() {
+    try {
+      var doc = window.frameElement ? window.frameElement.ownerDocument : null;
+      if (!doc) return;
+      var blocks = doc.querySelectorAll('[data-testid="stHorizontalBlock"]');
+      if (!blocks.length) return;
+      var last = blocks[blocks.length - 1];
+      last.style.alignItems = 'flex-start';
+      var cols = last.querySelectorAll(':scope > div');
+      if (cols.length >= 2) {
+        var preview = cols[cols.length - 1];
+        preview.style.position = 'sticky';
+        preview.style.top = '3.5rem';
+        preview.style.maxHeight = 'calc(100vh - 4rem)';
+        preview.style.overflowY = 'auto';
+        preview.style.alignSelf = 'flex-start';
+      }
+    } catch(e) {}
+  }
+  applySticky();
+  setTimeout(applySticky, 200);
+  setTimeout(applySticky, 800);
+})();
+</script>
+""", height=0)

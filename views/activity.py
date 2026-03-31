@@ -1,0 +1,92 @@
+"""View: Activity Log — audit trail with filters and CSV export (admin only)."""
+import io
+from datetime import date, timedelta
+
+import pandas as pd
+import streamlit as st
+
+from utils.auth import parse_activity_log
+from utils.content import page_header
+
+
+def render(ctx):
+    if st.session_state.get("current_role") != "admin":
+        st.error("🔒 Access denied. Admin only.")
+        st.stop()
+
+    page_header(
+        "📋", "Activity Log",
+        "Audit trail of all user actions. Filter by user, action type, or date range.",
+        "#f97316",
+    )
+
+    records = parse_activity_log()
+
+    # Summary metrics
+    _today_str = str(date.today())
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.metric("Total Events", len(records))
+    mc2.metric("Today", sum(1 for r in records if r["date"] == _today_str))
+    mc3.metric("Unique Users", len(set(r["user"] for r in records)))
+    mc4.metric("Content Edits", sum(1 for r in records if r["action"] == "CONTENT_EDIT"))
+
+    # Filters
+    col_f1, col_f2, col_f3 = st.columns(3)
+    with col_f1:
+        all_users = sorted(set(r["user"] for r in records))
+        filter_user = st.selectbox("User", ["All"] + all_users)
+    with col_f2:
+        all_actions = sorted(set(r["action"] for r in records))
+        filter_action = st.selectbox("Action", ["All"] + all_actions)
+    with col_f3:
+        _default_start = date.today() - timedelta(days=30)
+        date_range = st.date_input(
+            "Date Range", value=(_default_start, date.today()), max_value=date.today()
+        )
+
+    # Apply filters
+    filtered = records
+    if filter_user != "All":
+        filtered = [r for r in filtered if r["user"] == filter_user]
+    if filter_action != "All":
+        filtered = [r for r in filtered if r["action"] == filter_action]
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        _start, _end = str(date_range[0]), str(date_range[1])
+        filtered = [r for r in filtered if _start <= r["date"] <= _end]
+
+    filtered = list(reversed(filtered))
+    _display_cap = 500
+    _total_filtered = len(filtered)
+    filtered = filtered[:_display_cap]
+
+    st.divider()
+
+    if filtered:
+        df = pd.DataFrame(filtered)
+        st.dataframe(
+            df[["timestamp", "user", "action", "detail"]],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "timestamp": st.column_config.TextColumn("Timestamp", width="medium"),
+                "user":      st.column_config.TextColumn("User", width="small"),
+                "action":    st.column_config.TextColumn("Action", width="small"),
+                "detail":    st.column_config.TextColumn("Details", width="large"),
+            },
+        )
+        _cap_note = f" (showing latest {_display_cap})" if _total_filtered > _display_cap else ""
+        col_cap, col_export = st.columns([3, 1])
+        with col_cap:
+            st.caption(f"Showing {len(filtered)} of {len(records)} entries{_cap_note}")
+        with col_export:
+            _csv_buf = io.StringIO()
+            df[["timestamp", "user", "action", "detail"]].to_csv(_csv_buf, index=False)
+            st.download_button(
+                label="📥 Export CSV",
+                data=_csv_buf.getvalue(),
+                file_name="activity_log.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+    else:
+        st.info("No matching records.")

@@ -1,0 +1,160 @@
+"""
+LaTeX compiler helpers: MiKTeX path cleaning, log parsing,
+live preview generation, and cross-browser PDF rendering.
+"""
+import json
+import os
+import subprocess
+
+import streamlit as st
+
+
+# ── MiKTeX Helpers ────────────────────────────────────────────────────────────
+def _get_miktex_env() -> dict:
+    """Return os.environ copy with non-directory PATH entries removed.
+    MiKTeX throws Windows API error 267 if a PATH entry is a file (e.g. claude.exe)."""
+    env = os.environ.copy()
+    raw_path = env.get("PATH", "")
+    clean_parts = [p for p in raw_path.split(os.pathsep)
+                   if p.strip() and not os.path.isfile(p.strip())]
+    env["PATH"] = os.pathsep.join(clean_parts)
+    return env
+
+
+def _clear_miktex_issues() -> None:
+    """Clear MiKTeX issues.json to silence the 'check for updates' nag."""
+    issues_path = os.path.join(
+        os.environ.get("APPDATA", ""),
+        "MiKTeX", "miktex", "config", "issues.json",
+    )
+    if os.path.exists(issues_path):
+        try:
+            with open(issues_path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            if any("not checked for updates" in (item.get("message") or "") for item in data):
+                with open(issues_path, "w", encoding="utf-8") as fh:
+                    json.dump([], fh)
+        except Exception:
+            pass
+
+
+# ── Log Parser ────────────────────────────────────────────────────────────────
+def parse_latex_log(log_path: str) -> str:
+    if not os.path.exists(log_path):
+        return "Log file not found."
+    errors = []
+    try:
+        with open(log_path, "r", encoding="latin-1", errors="ignore") as f:
+            lines = f.readlines()
+        for i, line in enumerate(lines):
+            if line.startswith("!"):
+                context = lines[i:i + 3]
+                errors.append("".join(context).strip())
+    except Exception:
+        return "Could not parse log."
+    return "\n\n".join(errors) if errors else "Unknown error. Check syntax."
+
+
+# ── LaTeX Reference Toolbar ───────────────────────────────────────────────────
+def render_toolbar():
+    """Static LaTeX reference card — read-only, no rerun risk."""
+    _snippets = [
+        ("Bold",        r"\textbf{Text}"),
+        ("Italic",      r"\textit{Text}"),
+        ("Underline",   r"\underline{Text}"),
+        ("Color",       r"\textcolor{ECEScyan}{Text}"),
+        ("Superscript", r"\textsuperscript{th}"),
+        ("Footnote",    r"\footnote{Note text}"),
+        ("Line Break",  r"\\"),
+        ("Escape %",    r"\%"),
+        ("Spacing",     r"\vspace{0.5cm}"),
+        ("En-dash",     "--"),
+        ("Em-dash",     "---"),
+        ("Arabic ،",    "،"),
+    ]
+    _cols = st.columns(4)
+    for i, (_name, _code) in enumerate(_snippets):
+        with _cols[i % 4]:
+            st.code(_code, language="latex")
+            st.caption(_name)
+
+    with st.expander("📋 Block Templates", expanded=False):
+        st.caption("Bulleted List")
+        st.code("\\begin{itemize}\n    \\item Point 1\n    \\item Point 2\n\\end{itemize}", language="latex")
+        st.caption("Numbered List")
+        st.code("\\begin{enumerate}\n    \\item First\n    \\item Second\n\\end{enumerate}", language="latex")
+        st.caption("Table")
+        st.code("\\begin{tabular}{l|r}\n    Header & Value \\\\\n    \\hline\n    Row 1 & 100 \\\\\n\\end{tabular}", language="latex")
+
+
+# ── Preview Generator ─────────────────────────────────────────────────────────
+def generate_preview(content_latex: str, preamble_file: str, config_file: str, base_dir: str):
+    """
+    Compile a standalone PDF snippet using the active language's preamble.
+    Returns: (pdf_path, error_msg) — one of the two will be None.
+    """
+    preview_filename = "preview_temp"
+    preview_tex = f"{preview_filename}.tex"
+    preview_pdf = f"{preview_filename}.pdf"
+    preview_log = f"{preview_filename}.log"
+
+    if os.path.exists(preview_pdf):
+        os.remove(preview_pdf)
+    if os.path.exists(preview_log):
+        os.remove(preview_log)
+
+    full_latex_code = (
+        f"\\documentclass[a4paper,12pt]{{article}}\n"
+        f"\\input{{{preamble_file}}}\n"
+        f"\\input{{{config_file}}}\n"
+        "\\begin{document}\n"
+        + content_latex
+        + "\n\\end{document}"
+    )
+
+    with open(preview_tex, "w", encoding="utf-8") as f:
+        f.write(full_latex_code)
+
+    try:
+        _clear_miktex_issues()
+        subprocess.run(
+            ["xelatex", "-interaction=nonstopmode", preview_tex],
+            cwd=base_dir,
+            stdout=subprocess.DEVNULL,
+            env=_get_miktex_env(),
+        )
+        if os.path.exists(preview_pdf):
+            return preview_pdf, None
+        else:
+            error_msg = parse_latex_log(os.path.join(base_dir, preview_log))
+            return None, error_msg
+    except Exception as e:
+        return None, str(e)
+
+
+# ── PDF Renderer ──────────────────────────────────────────────────────────────
+def display_pdf(pdf_path: str):
+    """Render PDF pages as PNG images for cross-browser compatibility (pymupdf)."""
+    if not os.path.exists(pdf_path):
+        st.error("Preview file not found.")
+        return
+    try:
+        import fitz  # pymupdf
+
+        doc = fitz.open(pdf_path)
+        total_pages = len(doc)
+        page_num = st.slider(
+            "Page", 1, total_pages, 1,
+            key=f"pdf_page_{os.path.basename(pdf_path)}",
+        ) - 1
+        page = doc[page_num]
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+        st.image(
+            pixmap.tobytes("png"),
+            use_container_width=True,
+            caption=f"Page {page_num + 1} of {total_pages}",
+        )
+    except ImportError:
+        st.warning("pymupdf not installed. Run: pip install pymupdf")
+    except Exception as e:
+        st.error(f"Could not render PDF: {e}")

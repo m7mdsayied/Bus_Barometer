@@ -1,0 +1,147 @@
+% =========================================================
+% مؤشر مقياس الأعمال — ARABIC
+% =========================================================
+
+% 1. Geometry
+\newgeometry{right=2cm, left=2cm, top=3cm, bottom=2.5cm}
+
+\begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=north west] at ([xshift=0cm, yshift=-2cm]current page.north west) {
+        \includegraphics[width=2.5cm]{oev.png}
+    };
+\end{tikzpicture}
+
+\noindent
+\begin{minipage}{0.85\textwidth}
+    {\fontsize{20}{24}\selectfont \textbf{\color{ecestitle} مؤشر مقياس الأعمال (BBI)}}
+    \vspace{0.5em}
+    {\fontsize{18}{22}\selectfont \textbf{\color{ecestitle} أولاً: تقييم الأداء والتوقعات وفقاً للمؤشر الإجمالي}}
+    \vspace{0.8em}
+    \label{sec:ar_bbi}
+    {\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_intro_ar}{[TODO: أدخل ملخصاً في جملة أو جملتين عن أداء مؤشر الأداء الكلي مقارنةً بالمستوى المحايد لربع \CurrentQuarterText.]}}}
+\end{minipage}
+
+\vspace{0.8em}
+
+\noindent
+{\fontsize{11}{14}\selectfont \textbf{\color{ecestitle} \textit{1-1 المؤشر الإجمالي}}}
+\vspace{0.5em}
+
+\noindent
+{\fontsize{10}{13}\selectfont
+\ECESContent{overall_bpi_text_ar}{[TODO: أدخل تحليلاً تفصيلياً لمؤشر أداء الأعمال لربع \CurrentQuarterText — قيمته بالنسبة للمستوى المحايد، ومقارنته بربع \PreviousQuarterText والربع المناظر \CorrespQuarterText، والمؤشرات الفرعية المحركة (شكل 1-1).]}
+
+\vspace{0.8em}
+
+\ECESContent{overall_expectations_ar}{[TODO: أدخل تحليل مؤشر توقعات الأداء لربع \NextQuarterText — قيمته ومقارنته بالفترات السابقة وتوقعات القطاعات والأحجام (شكل 1-2).]}
+}
+
+\vspace{1em}
+
+%% TODO: Upload ch9.png (Arabic) — المؤشر الإجمالي وتوقعاته via Chart Manager
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{ch9.png}
+\end{figure}
+
+\noindent
+{\fontsize{8}{10}\selectfont
+\ECESContent{overall_footnotes_pg12_ar}{[TODO: أدخل مصدر البيانات والملاحظات الخاصة بالشكل.]}
+}
+
+\clearpage
+
+% =========================================================
+% المؤشر وفقاً للحجم والقطاع — ARABIC
+% =========================================================
+
+\newgeometry{right=2cm, left=2cm, top=1cm, bottom=1cm}
+
+\noindent
+{\fontsize{9}{11}\selectfont \textbf{\color{ecestitle} 1-2 المؤشر وفقاً لحجم الشركة}}
+
+\noindent
+{\fontsize{8}{11}\selectfont
+\ECESContent{overall_size_perf_ar}{[TODO: أدخل تحليل أداء المؤشر وفقاً لحجم الشركات لربع \CurrentQuarterText — الكبيرة مقابل الصغيرة والمتوسطة، والمقارنة بالفترات السابقة (أشكال 1-3 و1-4).]}
+
+\ECESContent{overall_size_exp_ar}{[TODO: أدخل تحليل مؤشر التوقعات وفقاً لحجم الشركات لربع \NextQuarterText.]}
+}
+
+%% TODO: Upload ch10.png (Arabic) — المؤشر وفقاً لحجم الشركة via Chart Manager
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{ch10.png}
+\end{figure}
+
+\noindent
+{\fontsize{9}{12}\selectfont \textbf{\color{ecestitle} 1-3 المؤشر وفقاً للقطاعات الاقتصادية}}
+
+\noindent
+{\fontsize{8}{11}\selectfont
+\ECESContent{overall_sector_intro_ar}{[TODO: أدخل ملخصاً لأداء القطاعات — القطاعات التي تجاوزت المستوى المحايد وتلك التي لم تتجاوزه لربع \CurrentQuarterText.]}
+}
+
+%% TODO: Upload ch11.png (Arabic) — المؤشر وفقاً للقطاعات via Chart Manager
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{ch11.png}
+\end{figure}
+
+\clearpage
+
+% =========================================================
+% التحليل التفصيلي للقطاعات — ARABIC
+% =========================================================
+
+\newgeometry{right=2cm, left=2cm, top=1cm, bottom=1cm}
+
+\noindent
+{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_perf_intro_ar}{[TODO: أدخل الجملة التمهيدية للتحليل القطاعي التفصيلي.]}}}
+
+\vspace{0.5em}
+\label{sec:ar_eval_overall}
+\begin{itemize} \itemsep0.6em
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_manufacturing_ar}{[TODO: أدخل أداء قطاع الصناعات التحويلية لربع \CurrentQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_construction_ar}{[TODO: أدخل أداء قطاع التشييد والبناء لربع \CurrentQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_tourism_ar}{[TODO: أدخل أداء قطاع السياحة لربع \CurrentQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_transport_ar}{[TODO: أدخل أداء قطاع النقل لربع \CurrentQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_telecom_ar}{[TODO: أدخل أداء قطاع الاتصالات وتكنولوجيا المعلومات لربع \CurrentQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_financial_ar}{[TODO: أدخل أداء قطاع الخدمات المالية لربع \CurrentQuarterText.]}
+\end{itemize}
+
+\vspace{1em}
+
+\noindent
+{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_exp_intro_ar}{[TODO: أدخل الجملة التمهيدية لقسم توقعات القطاعات.]}}}
+
+\begin{itemize} \itemsep0.6em
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_manufacturing_ar}{[TODO: أدخل توقعات قطاع الصناعات التحويلية لربع \NextQuarterText.]}
+\end{itemize}
+
+\clearpage
+
+% =========================================================
+% توقعات القطاعات (تابع) — ARABIC
+% =========================================================
+
+\begin{itemize} \itemsep0.6em
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_construction_ar}{[TODO: أدخل توقعات قطاع التشييد والبناء لربع \NextQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_tourism_ar}{[TODO: أدخل توقعات قطاع السياحة لربع \NextQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_transport_ar}{[TODO: أدخل توقعات قطاع النقل لربع \NextQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_telecom_ar}{[TODO: أدخل توقعات قطاع الاتصالات لربع \NextQuarterText.]}
+    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_financial_ar}{[TODO: أدخل توقعات قطاع الخدمات المالية لربع \NextQuarterText (شكل 1-6).]}
+\end{itemize}
+
+\vspace{0.5em}
+
+%% TODO: Upload ch12.png (Arabic) — مؤشر التوقعات وفقاً للقطاعات via Chart Manager
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{ch12.png}
+\end{figure}
+
+\vspace{-0.5em}
+\noindent
+{\fontsize{7}{9}\selectfont \ECESContent{overall_source_pg15_ar}{المصدر: نتائج المسح.}}
+
+\clearpage

@@ -1,0 +1,17 @@
+{
+    "admin": {
+        "password": "$2b$12$REPLACE_WITH_BCRYPT_HASH_FOR_ADMIN",
+        "role": "admin",
+        "enabled": true
+    },
+    "editor": {
+        "password": "$2b$12$REPLACE_WITH_BCRYPT_HASH_FOR_EDITOR",
+        "role": "editor",
+        "enabled": true
+    },
+    "viewer": {
+        "password": "$2b$12$REPLACE_WITH_BCRYPT_HASH_FOR_VIEWER",
+        "role": "viewer",
+        "enabled": true
+    }
+}
