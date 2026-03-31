@@ -47,6 +47,9 @@ def render(ctx):
             st.rerun()
 
     st.divider()
-    if st.button("→ Continue to Step 3: Chart Manager", type="primary", key="next_step_variables"):
+    st.markdown('<div class="continue-btn-wrapper">', unsafe_allow_html=True)
+    if st.button("→ Continue to Step 3: Chart Manager", type="primary",
+                 use_container_width=True, key="next_step_variables"):
         st.session_state["_pending_nav"] = "📊 Chart Manager"
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)

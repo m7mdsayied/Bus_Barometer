@@ -465,15 +465,30 @@ def reconstruct_latex(blocks: list) -> str:
 
 # ── Page Header ───────────────────────────────────────────────────────────────
 def page_header(icon: str, title: str, subtitle: str = "", accent: str = "#1FBACF"):
-    """Render a left-border accent banner."""
-    _sub = (
-        f"<div style='font-size:0.83rem;color:#94a3b8;margin-top:0.25rem;'>{subtitle}</div>"
-        if subtitle else ""
-    )
+    """Render a left-border accent banner with optional step pill badge."""
+    import re as _re
+    _step_m = _re.match(r'^(Step\s+\d+\s+of\s+\d+)\s*[·•]\s*(.*)', subtitle, _re.IGNORECASE)
+    if _step_m:
+        _badge_label = _step_m.group(1)
+        _rest        = _step_m.group(2)
+        _sub = (
+            f"<div style='display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;'>"
+            f"<span style='display:inline-block;background:rgba(31,186,207,0.15);color:#1FBACF;"
+            f"font-size:0.70rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;"
+            f"padding:2px 10px;border-radius:20px;border:1px solid rgba(31,186,207,0.30);"
+            f"white-space:nowrap;'>{_badge_label}</span>"
+            f"<span style='color:#94a3b8;font-size:0.85rem;'>{_rest}</span>"
+            f"</div>"
+        )
+    elif subtitle:
+        _sub = f"<div style='font-size:0.83rem;color:#94a3b8;margin-top:0.25rem;'>{subtitle}</div>"
+    else:
+        _sub = ""
     st.markdown(
-        f"<div style='border-left:4px solid {accent};padding:0.55rem 1rem;"
-        f"margin-bottom:1rem;background:rgba(255,255,255,0.03);border-radius:0 8px 8px 0;'>"
-        f"<span style='font-size:1.45rem;font-weight:700;color:#f1f5f9;'>{icon}&nbsp;{title}</span>"
+        f"<div style='border-left:4px solid {accent};padding:0.6rem 1rem 0.65rem 1rem;"
+        f"margin-bottom:1.1rem;background:rgba(255,255,255,0.03);border-radius:0 8px 8px 0;'>"
+        f"<span style='font-size:1.5rem;font-weight:700;color:#f1f5f9;letter-spacing:-0.3px;'>"
+        f"{icon}&nbsp;{title}</span>"
         f"{_sub}</div>",
         unsafe_allow_html=True,
     )

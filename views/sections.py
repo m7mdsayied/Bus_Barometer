@@ -141,8 +141,21 @@ def render(ctx):
     """, unsafe_allow_html=True)
 
     if is_slot_based and _total_slots > 0:
-        st.progress(_edited_slots / _total_slots,
-                    text=f"{_edited_slots}/{_total_slots} slots customized")
+        _pct = int((_edited_slots / _total_slots) * 100)
+        _bar_col = "#22c55e" if _pct == 100 else "#1FBACF"
+        st.markdown(
+            f"<div style='margin:8px 0 14px 0;'>"
+            f"<div style='display:flex;justify-content:space-between;align-items:baseline;"
+            f"margin-bottom:5px;'>"
+            f"<span style='font-size:0.78rem;color:#94a3b8;font-weight:500;'>Slots customized</span>"
+            f"<span style='font-size:0.78rem;font-weight:700;color:{_bar_col};'>"
+            f"{_edited_slots} / {_total_slots}</span></div>"
+            f"<div style='height:5px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;'>"
+            f"<div style='height:100%;width:{_pct}%;background:{_bar_col};"
+            f"border-radius:99px;transition:width 0.4s ease;'></div>"
+            f"</div></div>",
+            unsafe_allow_html=True,
+        )
 
     if is_slot_based and section_slots:
         _lang_key = st.session_state["language"]
@@ -417,7 +430,9 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
 
     if st.session_state.get("current_role") in ("admin", "editor"):
         st.divider()
+        st.markdown('<div class="continue-btn-wrapper">', unsafe_allow_html=True)
         if st.button("→ Continue to Step 5: Finalize & Publish", type="primary",
-                     key="next_step_sections"):
+                     use_container_width=True, key="next_step_sections"):
             st.session_state["_pending_nav"] = "🚀 Finalize & Publish"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)

@@ -66,8 +66,22 @@ if not st.session_state["authenticated"]:
     with col2:
         st.markdown("""
             <div class="login-container">
-                <h2 class="login-header">ECES Barometer Suite</h2>
-                <p>Please log in to continue</p>
+                <div style="display:flex;flex-direction:column;align-items:center;
+                            gap:10px;padding:28px 0 20px 0;">
+                    <div style="width:68px;height:68px;
+                                background:linear-gradient(135deg,#1FBACF 0%,#CF34A9 100%);
+                                border-radius:18px;display:flex;align-items:center;
+                                justify-content:center;font-size:1.9rem;
+                                box-shadow:0 8px 28px rgba(31,186,207,0.35);">📊</div>
+                    <div style="font-size:1.5rem;font-weight:700;letter-spacing:-0.4px;
+                                color:#e2e8f0;line-height:1.2;">ECES Barometer</div>
+                    <div style="font-size:0.75rem;color:#64748b;letter-spacing:0.10em;
+                                text-transform:uppercase;font-weight:600;">
+                        Survey Management Suite</div>
+                    <div style="width:44px;height:2px;
+                                background:linear-gradient(90deg,#1FBACF,#CF34A9);
+                                border-radius:2px;margin-top:2px;"></div>
+                </div>
             </div>
         """, unsafe_allow_html=True)
         with st.form("login_form"):
@@ -190,10 +204,64 @@ div[data-testid="stMetric"] {{
 }}
 div[data-testid="stMetric"] label {{ color: var(--text-secondary) !important; }}
 div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{ color: var(--primary) !important; }}
-::-webkit-scrollbar {{ width: 8px; height: 8px; }}
-::-webkit-scrollbar-track {{ background: var(--bg-primary); }}
-::-webkit-scrollbar-thumb {{ background: var(--border-color); border-radius: 4px; }}
-::-webkit-scrollbar-thumb:hover {{ background: var(--primary); }}
+::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+::-webkit-scrollbar-track {{ background: var(--bg-dark); }}
+::-webkit-scrollbar-thumb {{ background: #334155; border-radius: 99px; }}
+::-webkit-scrollbar-thumb:hover {{ background: #475569; }}
+
+/* ── Sidebar nav: hide radio dots, style as menu list ── */
+div[data-testid="stSidebarContent"] .stRadio > label {{ display: none !important; }}
+div[data-testid="stSidebarContent"] .stRadio > div[role="radiogroup"] {{
+    display: flex; flex-direction: column; gap: 2px; background: transparent !important;
+    border: none !important; border-radius: 0 !important; padding: 0 !important;
+}}
+div[data-testid="stSidebarContent"] .stRadio label {{
+    display: flex !important; align-items: center;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 0.90rem; font-weight: 500; color: #94a3b8;
+    background: transparent; border: none !important;
+    transition: background 0.18s ease, color 0.18s ease;
+    gap: 8px; user-select: none;
+}}
+div[data-testid="stSidebarContent"] .stRadio label:hover {{
+    background: rgba(31,186,207,0.08); color: #e2e8f0;
+}}
+div[data-testid="stSidebarContent"] .stRadio label:has(input[aria-checked="true"]) {{
+    background: rgba(31,186,207,0.15) !important; color: #1FBACF !important;
+    font-weight: 600 !important;
+    border-left: 3px solid #1FBACF !important; padding-left: 9px !important;
+}}
+div[data-testid="stSidebarContent"] .stRadio input[type="radio"] {{
+    position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;
+}}
+
+/* ── Continue / next-step button wrapper ── */
+div.continue-btn-wrapper > div[data-testid="stButton"] > button {{
+    background: linear-gradient(90deg, #1FBACF 0%, #0ea5c9 100%) !important;
+    color: #0f172a !important; font-weight: 700 !important;
+    font-size: 0.95rem !important; letter-spacing: 0.02em !important;
+    border: none !important; border-radius: 10px !important;
+    box-shadow: 0 4px 18px rgba(31,186,207,0.30) !important;
+    transition: box-shadow 0.2s ease, transform 0.15s ease !important;
+}}
+div.continue-btn-wrapper > div[data-testid="stButton"] > button:hover {{
+    box-shadow: 0 6px 26px rgba(31,186,207,0.50) !important;
+    transform: translateY(-1px) !important;
+}}
+
+/* ── Chart image height cap ── */
+div[data-testid="stImage"] img {{
+    max-height: 260px; object-fit: contain; border-radius: 6px; width: 100%;
+}}
+
+/* ── Metric refinements ── */
+div[data-testid="stMetricValue"] > div {{
+    font-size: 1.55rem !important; font-weight: 700 !important;
+}}
+div[data-testid="stMetricLabel"] > div {{
+    font-size: 0.72rem !important; font-weight: 600 !important;
+    text-transform: uppercase; letter-spacing: 0.06em; color: #64748b !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -345,7 +413,7 @@ with st.sidebar:
             f"margin-top:1px;flex-shrink:0;'>{_n}</div>"
             f"<div><div style='font-size:0.78rem;font-weight:600;color:{_lcol};'>"
             f"{_s['label']}</div>"
-            f"<div style='font-size:0.68rem;color:#64748b;line-height:1.2;'>"
+            f"<div style='font-size:0.75rem;color:#94a3b8;line-height:1.3;'>"
             f"{_s['short']}</div></div></div>"
         )
     st.markdown(_stepper_html, unsafe_allow_html=True)

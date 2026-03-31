@@ -135,6 +135,9 @@ def render(ctx):
         render_image_manager(ctx.STATIC_IMG_DIR, allow_delete=_can_edit)
 
     st.divider()
-    if st.button("→ Continue to Step 4: Report Sections", type="primary", key="next_step_charts"):
+    st.markdown('<div class="continue-btn-wrapper">', unsafe_allow_html=True)
+    if st.button("→ Continue to Step 4: Report Sections", type="primary",
+                 use_container_width=True, key="next_step_charts"):
         st.session_state["_pending_nav"] = "📝 Report Sections"
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)

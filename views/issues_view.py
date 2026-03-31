@@ -141,10 +141,10 @@ def render(ctx):
     for _w in _WS:
         _steps_html += (
             f"<div style='flex:1;text-align:center;padding:0 4px;'>"
-            f"<div style='font-size:1.1rem;'>{_w['icon']}</div>"
-            f"<div style='font-size:0.62rem;font-weight:700;color:#1FBACF;margin:2px 0;'>Step {_w['num']}</div>"
-            f"<div style='font-size:0.65rem;color:#f1f5f9;font-weight:600;line-height:1.2;'>{_w['label']}</div>"
-            f"<div style='font-size:0.6rem;color:#94a3b8;line-height:1.2;margin-top:2px;'>{_w['short']}</div>"
+            f"<div style='font-size:1.2rem;'>{_w['icon']}</div>"
+            f"<div style='font-size:0.72rem;font-weight:700;color:#1FBACF;margin:3px 0;'>Step {_w['num']}</div>"
+            f"<div style='font-size:0.83rem;color:#f1f5f9;font-weight:600;line-height:1.25;'>{_w['label']}</div>"
+            f"<div style='font-size:0.72rem;color:#94a3b8;line-height:1.3;margin-top:3px;'>{_w['short']}</div>"
             f"</div>"
         )
         if _w["num"] < len(_WS):
@@ -155,8 +155,8 @@ def render(ctx):
     st.markdown(
         "<div style='background:#0f172a;border:1px solid #334155;border-radius:10px;"
         "padding:12px 16px;margin-bottom:1rem;'>"
-        "<div style='font-size:0.68rem;font-weight:700;color:#64748b;letter-spacing:0.08em;"
-        "text-transform:uppercase;margin-bottom:8px;'>Report Production Workflow</div>"
+        "<div style='font-size:0.75rem;font-weight:700;color:#64748b;letter-spacing:0.08em;"
+        "text-transform:uppercase;margin-bottom:10px;'>Report Production Workflow</div>"
         f"<div style='display:flex;align-items:flex-start;'>{_steps_html}</div></div>",
         unsafe_allow_html=True,
     )
@@ -291,6 +291,9 @@ def render(ctx):
         "**Tip:** After loading an issue or template, go to ⚙️ Report Variables "
         "to update the Issue Number and dates before compiling."
     )
-    if st.button("→ Continue to Step 2: Report Variables", type="primary", key="next_step_issues"):
+    st.markdown('<div class="continue-btn-wrapper">', unsafe_allow_html=True)
+    if st.button("→ Continue to Step 2: Report Variables", type="primary",
+                 use_container_width=True, key="next_step_issues"):
         st.session_state["_pending_nav"] = "⚙️ Report Variables"
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
