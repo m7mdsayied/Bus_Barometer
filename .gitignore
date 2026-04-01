@@ -41,3 +41,11 @@ activity.log
 
 # Generated report output (PDFs and DOCX — compile locally)
 reports/
+
+# Chart source scripts — not needed in repo
+Chart_Scripts/
+
+# Generated custom section TeX files
+content/cs_*.tex
+custom_sections_generated.tex
+custom_sections_generated_ar.tex
