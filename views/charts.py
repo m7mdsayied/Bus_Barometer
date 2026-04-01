@@ -1,5 +1,6 @@
 """View: Chart Manager — upload/replace charts and static images."""
 import os
+import re
 
 import streamlit as st
 
@@ -112,15 +113,21 @@ def render(ctx):
                     elif not _new_file:
                         st.error("Please select an image file.")
                     else:
+                        # Strip to basename, reject any path traversal or reserved chars
                         _save_name = os.path.basename(_new_name.strip())
-                        if not _save_name or "/" in _save_name or "\\" in _save_name:
-                            st.error("Invalid filename.")
+                        _allowed_chars = re.compile(r'^[\w\-. ]+$')
+                        if (not _save_name
+                                or ".." in _save_name
+                                or not _allowed_chars.match(_save_name)):
+                            st.error("Invalid filename. Use only letters, numbers, hyphens, and underscores.")
                             st.stop()
                         if not any(_save_name.lower().endswith(e) for e in (".png", ".jpg", ".jpeg")):
                             _save_name += ".png"
                         _dest = os.path.join(ctx.ACTIVE_CHARTS_DIR, _save_name)
                         _fid = f"{_new_file.name}_{_new_file.size}"
-                        if st.session_state.get("_saved_new_chart") != _fid:
+                        if st.session_state.get("_saved_new_chart") == _fid:
+                            st.info("This file was already uploaded in this session.")
+                        else:
                             with open(_dest, "wb") as f:
                                 f.write(_new_file.getbuffer())
                             log_activity("CHART_UPLOADED", detail=_save_name)

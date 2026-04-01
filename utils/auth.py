@@ -24,8 +24,10 @@ if not _activity_logger.handlers:
 def log_activity(action: str, user: str = "", detail: str = ""):
     """Write a structured line to activity.log."""
     user = user or st.session_state.get("current_user", "unknown")
-    # Strip newlines to prevent log injection
-    detail = detail.replace("\n", " ").replace("\r", " ")
+    # Strip characters that could forge log fields (newlines, pipe, em-dash separator)
+    for ch in ("\n", "\r", "|", " — ", " - "):
+        detail = detail.replace(ch, " ")
+    detail = detail.strip()
     _activity_logger.info(f"[{user}] {action}" + (f" — {detail}" if detail else ""))
 
 
@@ -86,6 +88,18 @@ def save_users(users: dict):
 
 
 # ── Session Helpers ───────────────────────────────────────────────────────────
+def clear_session():
+    """Wipe all session state and reset to unauthenticated defaults."""
+    for _k in list(st.session_state.keys()):
+        del st.session_state[_k]
+    st.session_state.update({
+        "authenticated": False,
+        "current_user": "",
+        "current_role": "viewer",
+        "last_active": 0.0,
+    })
+
+
 def setup_session_state():
     """Initialise required session-state keys on cold start."""
     defaults = [

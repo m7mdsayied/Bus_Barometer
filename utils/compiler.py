@@ -2,6 +2,7 @@
 LaTeX compiler helpers: MiKTeX path cleaning, log parsing,
 live preview generation, and cross-browser PDF rendering.
 """
+import base64
 import json
 import os
 import subprocess
@@ -105,6 +106,7 @@ def generate_preview(content_latex: str, preamble_file: str, config_file: str, b
 
     full_latex_code = (
         f"\\documentclass[a4paper,12pt]{{article}}\n"
+        f"\\usepackage[margin=1cm]{{geometry}}\n"
         f"\\input{{{preamble_file}}}\n"
         f"\\input{{{config_file}}}\n"
         "\\begin{document}\n"
@@ -133,7 +135,7 @@ def generate_preview(content_latex: str, preamble_file: str, config_file: str, b
 
 
 # ── PDF Renderer ──────────────────────────────────────────────────────────────
-def display_pdf(pdf_path: str):
+def display_pdf(pdf_path: str, display_width: int = 700):
     """Render PDF pages as PNG images for cross-browser compatibility (pymupdf)."""
     if not os.path.exists(pdf_path):
         st.error("Preview file not found.")
@@ -171,10 +173,19 @@ def display_pdf(pdf_path: str):
                 st.session_state[_page_key] += 1
                 st.rerun()
 
-        # Render at 2.5× for crisp, readable text
+        # Render at resolution matched to display width
+        _scale = max(2.0, display_width / 595.0)
         page = doc[st.session_state[_page_key]]
-        pixmap = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5))
-        st.image(pixmap.tobytes("png"), use_container_width=True)
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(_scale, _scale))
+        # Use raw HTML <img> to bypass Streamlit's wrapper divs that cap width
+        _img_b64 = base64.b64encode(pixmap.tobytes("png")).decode()
+        st.markdown(
+            f'<div style="overflow-x:auto;">'
+            f'<img src="data:image/png;base64,{_img_b64}" '
+            f'style="width:{display_width}px !important; max-width:none !important; display:block;">'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     except ImportError:
         st.warning("pymupdf not installed. Run: pip install pymupdf")

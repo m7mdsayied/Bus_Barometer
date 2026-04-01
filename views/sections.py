@@ -13,7 +13,7 @@ from utils.content import (
     add_custom_section, delete_custom_section,
     extract_section_items, extract_slots, get_all_section_slots,
     get_slot_label, load_custom_sections, load_file, save_file, save_slot,
-    reset_slot, parse_latex_blocks, reconstruct_latex,
+    reset_slot,
     append_text_slot_to_section, append_chart_slot_to_section,
     remove_text_slot_from_section, remove_chart_slot_from_section,
     page_header,
@@ -23,6 +23,9 @@ from utils.content import (
 # ── Dialogs ───────────────────────────────────────────────────────────────────
 @st.dialog("Add New Section")
 def _dlg_add_section(lang: str):
+    if st.session_state.get("current_role") not in ("admin", "editor"):
+        st.error("🔒 Access denied.")
+        st.stop()
     _type_icons = {"text": "📝", "chart": "📊", "mixed": "📝+📊", "table": "📋"}
     st.markdown("Create a new custom section for this report.")
     _title = st.text_input(
@@ -59,8 +62,27 @@ def _dlg_add_section(lang: str):
             st.rerun()
 
 
+@st.dialog("Remove Text Block?")
+def _dlg_remove_text_block(file_path: str, slot_id: str):
+    if st.session_state.get("current_role") not in ("admin", "editor"):
+        st.error("🔒 Access denied.")
+        st.stop()
+    st.warning("Permanently remove this text block? Unsaved edits will be lost.")
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("🗑️ Remove", type="primary", use_container_width=True):
+            remove_text_slot_from_section(file_path, slot_id)
+            st.rerun()
+    with c2:
+        if st.button("✗ Cancel", use_container_width=True):
+            st.rerun()
+
+
 @st.dialog("Delete Custom Section?")
 def _dlg_delete_section(lang: str, sec_id: str, sec_title: str):
+    if st.session_state.get("current_role") not in ("admin", "editor"):
+        st.error("🔒 Access denied.")
+        st.stop()
     st.warning(
         f"Remove **{sec_title}** from the section list?\n\n"
         "The `.tex` file is kept on disk — only the registration is removed."
@@ -185,6 +207,22 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
 }
 </style>
 """, unsafe_allow_html=True)
+    
+    st.markdown("""
+<style>
+/* Make the image take up 100% of the column without constraints */
+[data-testid="stImage"] {
+    width: 100% !important;
+}
+[data-testid="stImage"] img {
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 6px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+</style>
+""", unsafe_allow_html=True)
+
 
     col_editor, col_preview = st.columns([3, 2])
 
@@ -216,14 +254,18 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                         with _bc:
                             if _ov:
                                 st.markdown(
-                                    "<span style='background:#CF34A9;color:white;padding:3px 10px;"
-                                    "border-radius:50px;font-size:0.75em;font-weight:600;'>✏️ Edited</span>",
+                                    "<span title='Override saved — click Save All Changes to update' "
+                                    "style='background:#CF34A9;color:white;padding:3px 10px;"
+                                    "border-radius:50px;font-size:0.75em;font-weight:600;"
+                                    "cursor:help;'>✏️ Edited</span>",
                                     unsafe_allow_html=True,
                                 )
                             else:
                                 st.markdown(
-                                    "<span style='color:#94a3b8;padding:3px 10px;"
-                                    "border-radius:50px;font-size:0.75em;border:1px solid #475569;'>📄 Default</span>",
+                                    "<span title='Showing default content' "
+                                    "style='color:#94a3b8;padding:3px 10px;"
+                                    "border-radius:50px;font-size:0.75em;border:1px solid #475569;"
+                                    "cursor:help;'>📄 Default</span>",
                                     unsafe_allow_html=True,
                                 )
                         _h = max(150, min(400, len(_cur) // 2))
@@ -237,8 +279,7 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                         if _is_custom_sec and _role in ("admin", "editor"):
                             if st.button("🗑️ Remove block", key=f"rm_{_sid}",
                                          help="Remove this text block"):
-                                remove_text_slot_from_section(current_file_path, _sid)
-                                st.rerun()
+                                _dlg_remove_text_block(current_file_path, _sid)
 
                 else:  # chart
                     _fn = _item["filename"]
@@ -321,56 +362,27 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                     st.toast(f"✅ {current_section_name}: {', '.join(parts)}")
                     st.rerun()
                 else:
-                    st.toast(f"ℹ️ No changes detected in {current_section_name}")
+                    st.info(f"No changes detected in {current_section_name}.")
 
-        else:
-            # Legacy editor
-            st.caption("⚠️ This section uses the legacy editor. Migrate to slot system for safer editing.")
-            blocks = parse_latex_blocks(raw_content)
-
-            with st.form(f"legacy_form_{current_section_name}"):
-                edited_blocks = []
-                for idx, block in enumerate(blocks):
-                    if block["type"] == "code":
-                        edited_blocks.append(block)
-                    else:
-                        with st.container(border=True):
-                            h = max(150, len(block["content"]) // 1.5)
-                            new_text = st.text_area(
-                                f"Block {idx + 1}", value=block["content"], height=int(h),
-                                label_visibility="collapsed",
-                                key=f"legacy_{st.session_state['language']}_{current_section_name}_{idx}",
-                            )
-                        edited_blocks.append({"type": "text", "content": new_text})
-
-                legacy_save = st.form_submit_button(
-                    "💾 Save to File", type="primary", use_container_width=True
-                )
-
-            legacy_draft = reconstruct_latex(edited_blocks)
-            if legacy_save:
-                save_file(current_file_path, legacy_draft)
-                log_activity("CONTENT_EDIT", detail=f"{current_section_name} (legacy)")
-                st.toast(f"✅ Saved {current_section_name}")
 
     # ── Preview ───────────────────────────────────────────────────────────────
     with col_preview:
         st.markdown("**Live Preview**")
 
         # Section-scoped keys so preview survives slider reruns but clears on section change
-        _pdf_key = f"preview_pdf_{current_section_name}"
-        _err_key = f"preview_err_{current_section_name}"
+        _pdf_key      = f"preview_pdf_{current_section_name}"
+        _err_key      = f"preview_err_{current_section_name}"
+        _compile_key  = f"preview_compiling_{current_section_name}"
 
-        if st.button("👁️ Generate Preview", use_container_width=True, type="primary",
-                     key=f"preview_{current_section_name}"):
-            if is_slot_based:
-                preview_content = load_file(current_file_path)
-            else:
-                preview_content = (
-                    reconstruct_latex(edited_blocks)
-                    if "edited_blocks" in dir()
-                    else raw_content
-                )
+        _is_compiling = st.session_state.get(_compile_key, False)
+        if st.button(
+            "⏳ Compiling…" if _is_compiling else "👁️ Generate Preview",
+            use_container_width=True, type="primary",
+            key=f"preview_{current_section_name}",
+            disabled=_is_compiling,
+        ):
+            st.session_state[_compile_key] = True
+            preview_content = load_file(current_file_path)
             with st.status("Compiling Preview...", expanded=True) as _status:
                 pdf_path, error_msg = generate_preview(
                     preview_content,
@@ -386,6 +398,7 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                     st.session_state[_pdf_key] = None
                     st.session_state[_err_key] = error_msg
                     _status.update(label="Failed", state="error")
+            st.session_state[_compile_key] = False
 
         # Always render from stored state — survives page-slider reruns
         _stored_pdf = st.session_state.get(_pdf_key)

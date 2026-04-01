@@ -57,7 +57,7 @@ def render(ctx):
     # Header row
     hc = st.columns([2, 2, 2, 1, 1, 1])
     for col, label in zip(hc, ["**Username**", "**Password**", "**Role**",
-                                "**Status**", "**Save**", "**Delete**"]):
+                                "**Status**", "", ""]):
         col.markdown(label)
     st.markdown("<hr style='margin:0.25rem 0 0.75rem 0; border-color:#475569;'>",
                 unsafe_allow_html=True)
@@ -94,8 +94,7 @@ def render(ctx):
                     st.rerun()
 
         with col_save:
-            if st.button("💾", key=f"save_{username}", use_container_width=True,
-                         help="Save changes"):
+            if st.button("💾 Save", key=f"save_{username}", use_container_width=True):
                 if new_pass and len(new_pass) < 6:
                     st.toast(f"⚠️ Password too short for {username}.", icon="⚠️")
                 elif username == st.session_state["current_user"] and new_role != "admin":
@@ -121,7 +120,7 @@ def render(ctx):
                     unsafe_allow_html=True,
                 )
             else:
-                if st.button("🗑️", key=f"del_{username}", use_container_width=True,
+                if st.button("🗑️ Del", key=f"del_{username}", use_container_width=True,
                              help=f"Delete {username}"):
                     st.session_state[f"confirm_del_{username}"] = True
                     st.rerun()

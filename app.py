@@ -25,7 +25,7 @@ from utils.config import (
     ROLE_PERMISSIONS, WORKFLOW_STEPS, PROJECT_CONFIG, SESSION_TIMEOUT_MINUTES,
 )
 from utils.auth import (
-    check_login, hash_password, load_users, log_activity,
+    check_login, clear_session, hash_password, load_users, log_activity,
     save_users, setup_session_state, verify_password,
     _session_expired, _touch_session,
 )
@@ -93,12 +93,8 @@ if not st.session_state["authenticated"]:
 
 # ── Session timeout ───────────────────────────────────────────────────────────
 if _session_expired():
-    _expired_user = st.session_state.get("current_user", "")
-    log_activity("SESSION_TIMEOUT", _expired_user)
-    for _k in list(st.session_state.keys()):
-        del st.session_state[_k]
-    st.session_state.update({"authenticated": False, "current_user": "",
-                              "current_role": "viewer", "last_active": 0.0})
+    log_activity("SESSION_TIMEOUT", st.session_state.get("current_user", ""))
+    clear_session()
     st.warning(f"⏱️ Session expired after {SESSION_TIMEOUT_MINUTES} minutes of inactivity. Please log in again.")
     st.rerun()
 
@@ -109,8 +105,10 @@ _remaining_secs = SESSION_TIMEOUT_MINUTES * 60 - (
     time.time() - st.session_state.get("last_active", time.time())
 )
 if 0 < _remaining_secs < 300:
-    _mins, _secs = int(_remaining_secs // 60), int(_remaining_secs % 60)
-    st.warning(f"⏱️ Your session will expire in **{_mins}m {_secs}s** due to inactivity. Save your work.")
+    # Round to nearest 30 s to prevent per-second re-render flicker
+    _display_secs = max(30, round(_remaining_secs / 30) * 30)
+    _mins, _secs = int(_display_secs // 60), int(_display_secs % 60)
+    st.warning(f"⏱️ Your session will expire in about **{_mins}m {_secs}s** due to inactivity. Save your work.")
 
 # ── Language state ────────────────────────────────────────────────────────────
 if "language" not in st.session_state:
@@ -315,19 +313,6 @@ with st.sidebar:
             </div>
         """, unsafe_allow_html=True)
 
-    # Language toggle
-    st.markdown("**🌍 Report Language**")
-    selected_lang = st.radio(
-        "Select Language", ["English", "Arabic"],
-        index=0 if st.session_state["language"] == "English" else 1,
-        label_visibility="collapsed", horizontal=True,
-    )
-    if selected_lang != st.session_state["language"]:
-        st.session_state["language"] = selected_lang
-        st.session_state["pdf_ready"] = False
-        st.rerun()
-
-    st.caption("Switches which language files are compiled (EN / AR)")
     st.markdown("---")
 
     # User info + logout
@@ -345,10 +330,7 @@ with st.sidebar:
     with _uc2:
         if st.button("↩", help="Logout", use_container_width=True, key="sidebar_logout"):
             log_activity("LOGOUT")
-            for _k in list(st.session_state.keys()):
-                del st.session_state[_k]
-            st.session_state.update({"authenticated": False, "current_user": "",
-                                     "current_role": "viewer", "last_active": 0.0})
+            clear_session()
             st.rerun()
 
     # Self-service password change
@@ -378,7 +360,10 @@ with st.sidebar:
 
     # ── Pending navigation relay (from "Next Step" buttons in views) ─
     if "_pending_nav" in st.session_state:
-        st.session_state["nav_radio"] = st.session_state.pop("_pending_nav")
+        _nav_target = st.session_state.pop("_pending_nav")
+        _role_allowed = ROLE_PERMISSIONS.get(st.session_state.get("current_role", "viewer"), [])
+        if _nav_target in _role_allowed:
+            st.session_state["nav_radio"] = _nav_target
 
     # ── Visited-steps tracking ────────────────────────────────────────
     st.session_state.setdefault("visited_steps", set())

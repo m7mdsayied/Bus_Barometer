@@ -1,10 +1,13 @@
 """View: Report Variables — edit \newcommand values in the active config file."""
+import os
 import re
 
 import streamlit as st
 
 from utils.content import load_file, save_file, page_header
 from utils.config import VARIABLE_LABELS
+
+_LATEX_SPECIAL = re.compile(r'[\\{}_^#%&$]')
 
 
 def render(ctx):
@@ -14,7 +17,6 @@ def render(ctx):
         "#6366f1",
     )
 
-    import os
     if not os.path.exists(ctx.CONFIG_FILE):
         st.error(f"{ctx.active_config['config']} not found.")
         return
@@ -37,6 +39,14 @@ def render(ctx):
                 updates[key] = st.text_input(_var_label, value=val)
 
         if st.form_submit_button("💾 Update Variables", type="primary"):
+            _risky = [k for k, v in updates.items() if _LATEX_SPECIAL.search(v)]
+            if _risky:
+                st.warning(
+                    "⚠️ Some values contain LaTeX special characters "
+                    f"(`\\`, `{{`, `}}`, `#`, `%`, `&`, `$`, `^`, `_`) in: "
+                    + ", ".join(f"**{k}**" for k in _risky)
+                    + ". Verify the compiled output carefully."
+                )
             new_config = raw_config
             for key, val in updates.items():
                 regex_replace = r"(\\newcommand\{\\" + key + r"\}\{)(.*?)(\})"
