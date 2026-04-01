@@ -164,7 +164,6 @@ def save_custom_sections(data: dict):
         json.dump(data, f, ensure_ascii=False, indent=2)
     # Bust the section-map cache so the sidebar reflects the change immediately
     try:
-        import streamlit as st
         st.cache_data.clear()
     except Exception:
         pass
@@ -431,36 +430,6 @@ def reset_all_overrides():
 # ── Label Helpers ─────────────────────────────────────────────────────────────
 def get_slot_label(slot_id: str) -> str:
     return SLOT_LABELS.get(slot_id, slot_id.replace("_", " ").title())
-
-
-# ── Legacy Block Parser (non-migrated sections) ───────────────────────────────
-def parse_latex_blocks(content: str) -> list:
-    lines = content.splitlines()
-    blocks = []
-    current_chunk = []
-    current_type = None
-    latex_cmd_pattern = re.compile(r"^(\\|\%|\{|}|\s*\\)")
-
-    for line in lines:
-        is_code = bool(latex_cmd_pattern.match(line.strip())) or line.strip() == ""
-        line_type = "code" if is_code else "text"
-        if current_type is None:
-            current_type = line_type
-
-        if line_type != current_type:
-            blocks.append({"type": current_type, "content": "\n".join(current_chunk)})
-            current_chunk = [line]
-            current_type = line_type
-        else:
-            current_chunk.append(line)
-
-    if current_chunk:
-        blocks.append({"type": current_type, "content": "\n".join(current_chunk)})
-    return blocks
-
-
-def reconstruct_latex(blocks: list) -> str:
-    return "\n".join(b["content"] for b in blocks)
 
 
 # ── Page Header ───────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 """View: Activity Log — audit trail with filters and CSV export (admin only)."""
+import html
 import io
 from datetime import date, timedelta
 
@@ -44,9 +45,9 @@ def _render_activity_table(df: pd.DataFrame):
     rows_html = ""
     for _, row in df.iterrows():
         badge  = _action_badge(str(row.get("action", "")))
-        user   = str(row.get("user", "—"))
-        ts     = str(row.get("timestamp", ""))
-        detail = str(row.get("detail", ""))
+        user   = html.escape(str(row.get("user", "—")))
+        ts     = html.escape(str(row.get("timestamp", "")))
+        detail = html.escape(str(row.get("detail", "")))
         rows_html += (
             f'<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">'
             f'<td style="padding:9px 14px;white-space:nowrap;">{badge}</td>'

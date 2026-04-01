@@ -177,6 +177,12 @@ def render(ctx):
             )
     _lang = "en" if _im_lang.startswith("English") else "ar"
 
+    # Keep global language state in sync so all other views use the same language
+    _global_lang = "Arabic" if _lang == "ar" else "English"
+    if st.session_state.get("language") != _global_lang:
+        st.session_state["language"] = _global_lang
+        st.rerun()
+
     col_active, col_saved = st.columns([1, 1], gap="large")
 
     with col_active:
