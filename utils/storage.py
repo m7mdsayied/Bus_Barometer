@@ -182,8 +182,9 @@ def _list_all_keys(prefix: str = "") -> list[str]:
 def sync_to_local():
     """
     Download all Supabase objects to the local filesystem (called once at startup).
-    Only downloads files that do not already exist locally, so local edits made
-    within the same container session are never overwritten.
+    Supabase always wins over git-cloned defaults so user-saved data is restored.
+    Safe to overwrite because this function runs only once per session (guarded by
+    _startup_done in session state), so in-session writes are never clobbered.
     """
     if not _enabled():
         return
@@ -204,8 +205,6 @@ def sync_to_local():
     base = _base_dir()
     for key in _list_all_keys():
         local_path = base / key
-        if local_path.exists():
-            continue
         try:
             local_path.parent.mkdir(parents=True, exist_ok=True)
             data = _bucket().download(key)
