@@ -5,10 +5,12 @@ import shutil
 
 import streamlit as st
 
+import issue_manager as _im
 from utils import storage as _storage
 from utils.auth import log_activity
 from utils.compiler import _clear_miktex_issues, _get_miktex_env
 from utils.content import load_file, page_header
+from utils.config import BASE_DIR
 
 import subprocess
 
@@ -112,7 +114,62 @@ def render(ctx):
             st.caption("No reports yet.")
 
     st.divider()
+
+    # ── Save current issue ────────────────────────────────────────────────────
+    _lang = "ar" if ctx.is_arabic else "en"
+    try:
+        _info      = _im.get_current_issue_info(_lang, BASE_DIR)
+        _issue_num = _info["issue_num"]
+        _quarter   = _info.get("quarter", "")
+    except Exception:
+        _issue_num = "??"
+        _quarter   = ""
+
+    _label = f"Issue {_issue_num}" + (f" — {_quarter}" if _quarter else "")
+    st.markdown("#### 💾 Save Issue")
+    st.caption(
+        f"Archive **{_label}** ({_lang.upper()}) so you can reload it later from the Issue Manager."
+    )
+
+    if st.button("💾 Save Current Issue", type="primary", key="publish_save_issue_btn"):
+        _existing = _im.list_issues(_lang, BASE_DIR)
+        _exists   = any(str(i.get("issue_num")) == str(_issue_num) for i in _existing)
+        if _exists:
+            st.session_state["_publish_confirm_overwrite"] = True
+        else:
+            _ok, _msg = _im.save_issue(
+                _lang, BASE_DIR,
+                archived_by=st.session_state.get("current_user", "unknown"),
+            )
+            if _ok:
+                log_activity("ISSUE_SAVED", detail=f"issue {_issue_num} ({_lang.upper()}) from publish")
+                st.success(f"Issue {_issue_num} saved.")
+            else:
+                st.error(_msg)
+
+    if st.session_state.get("_publish_confirm_overwrite"):
+        st.warning(f"Issue **{_issue_num}** ({_lang.upper()}) is already archived. Overwrite it?")
+        _oc1, _oc2 = st.columns(2)
+        with _oc1:
+            if st.button("✓ Overwrite", type="primary", use_container_width=True,
+                         key="publish_overwrite_yes"):
+                st.session_state["_publish_confirm_overwrite"] = False
+                _ok, _msg = _im.save_issue(
+                    _lang, BASE_DIR,
+                    archived_by=st.session_state.get("current_user", "unknown"),
+                    overwrite=True,
+                )
+                if _ok:
+                    log_activity("ISSUE_SAVED", detail=f"issue {_issue_num} ({_lang.upper()}) overwrite from publish")
+                    st.success(f"Issue {_issue_num} overwritten.")
+                else:
+                    st.error(_msg)
+        with _oc2:
+            if st.button("✗ Cancel", use_container_width=True, key="publish_overwrite_no"):
+                st.session_state["_publish_confirm_overwrite"] = False
+                st.rerun()
+
+    st.divider()
     st.success(
-        "✅ **Workflow Complete** — you have reached the final step. "
-        "Compile the report above and download your PDF."
+        "✅ **Workflow Complete** — compile the report above, save the issue, and download your PDF."
     )
