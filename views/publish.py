@@ -5,6 +5,7 @@ import shutil
 
 import streamlit as st
 
+from utils import storage as _storage
 from utils.auth import log_activity
 from utils.compiler import _clear_miktex_issues, _get_miktex_env
 from utils.content import load_file, page_header
@@ -62,6 +63,7 @@ def render(ctx):
                         os.makedirs(REPORTS_DIR, exist_ok=True)
                         _dest = os.path.join(REPORTS_DIR, _fname_input)
                         shutil.copy2(_src_pdf, _dest)
+                        _storage.upload(_dest)
                         st.session_state["pdf_ready"] = True
                         st.session_state["final_pdf_path"] = _dest
                         st.session_state["final_pdf_label"] = _fname_input

@@ -94,7 +94,14 @@ def generate_preview(content_latex: str, preamble_file: str, config_file: str, b
     Compile a standalone PDF snippet using the active language's preamble.
     Returns: (pdf_path, error_msg) — one of the two will be None.
     """
-    preview_filename = "preview_temp"
+    # Use a per-session unique name to prevent collisions when multiple users
+    # generate previews simultaneously (they share the same container filesystem).
+    _pid = st.session_state.get("_preview_id")
+    if not _pid:
+        import uuid
+        _pid = uuid.uuid4().hex[:8]
+        st.session_state["_preview_id"] = _pid
+    preview_filename = f"preview_temp_{_pid}"
     preview_tex = f"{preview_filename}.tex"
     preview_pdf = f"{preview_filename}.pdf"
     preview_log = f"{preview_filename}.log"

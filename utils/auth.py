@@ -10,6 +10,7 @@ import time
 import bcrypt
 import streamlit as st
 
+from utils import storage as _storage
 from utils.config import USERS_FILE, ACTIVITY_LOG, SESSION_TIMEOUT_MINUTES
 
 # ── Activity Logger ──────────────────────────────────────────────────────────
@@ -29,6 +30,9 @@ def log_activity(action: str, user: str = "", detail: str = ""):
         detail = detail.replace(ch, " ")
     detail = detail.strip()
     _activity_logger.info(f"[{user}] {action}" + (f" — {detail}" if detail else ""))
+    for handler in _activity_logger.handlers:
+        handler.flush()
+    _storage.upload(ACTIVITY_LOG)
 
 
 def parse_activity_log() -> list:
@@ -85,6 +89,7 @@ def load_users() -> dict:
 def save_users(users: dict):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, indent=4, ensure_ascii=False)
+    _storage.upload(USERS_FILE)
 
 
 # ── Session Helpers ───────────────────────────────────────────────────────────

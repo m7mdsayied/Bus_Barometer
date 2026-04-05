@@ -50,6 +50,8 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 
+from utils import storage as _storage
+
 
 # ---------------------------------------------------------------------------
 # File lists (per language)
@@ -249,9 +251,9 @@ def save_issue(
     info = get_current_issue_info(lang, base_dir)
     issue_num = info["issue_num"]
 
-    # Reject non-numeric issue numbers to prevent path traversal
-    if not str(issue_num).isdigit():
-        return False, f"Invalid issue number: '{issue_num}'. Must be numeric."
+    # Reject non-numeric or out-of-range issue numbers to prevent path traversal
+    if not str(issue_num).isdigit() or not (1 <= int(issue_num) <= 9999):
+        return False, f"Invalid issue number: '{issue_num}'. Must be a number between 1 and 9999."
 
     dest = base / "issues" / lang / str(issue_num)
     # Confirm dest stays within the issues directory (defense in depth)
@@ -309,6 +311,7 @@ def save_issue(
             json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+        _storage.upload_dir(str(dest), cloud_prefix=f"issues/{lang}/{issue_num}")
         return True, f"Issue {issue_num} ({lang.upper()}) saved to archive."
 
     except Exception as e:
@@ -320,7 +323,7 @@ def save_issue(
 # ---------------------------------------------------------------------------
 
 def _clear_lang_overrides(overrides_dir: Path, lang: str) -> None:
-    """Remove override files belonging to the given language."""
+    """Remove override files belonging to the given language (local + cloud)."""
     if not overrides_dir.exists():
         return
     for f in overrides_dir.iterdir():
@@ -328,8 +331,10 @@ def _clear_lang_overrides(overrides_dir: Path, lang: str) -> None:
             continue
         if lang == "ar" and f.name.endswith("_ar.tex"):
             f.unlink()
+            _storage.delete(str(f))
         elif lang == "en" and not f.name.endswith("_ar.tex"):
             f.unlink()
+            _storage.delete(str(f))
 
 
 def load_issue(
@@ -351,24 +356,30 @@ def load_issue(
         # Config
         config_src = src / CONFIG_FILE[lang]
         if config_src.exists():
-            shutil.copy2(config_src, base / CONFIG_FILE[lang])
+            dest_config = base / CONFIG_FILE[lang]
+            shutil.copy2(config_src, dest_config)
+            _storage.upload(str(dest_config))
 
         # Content files
         content_src = src / "content"
         if content_src.exists():
             for f in content_src.iterdir():
                 if f.suffix == ".tex":
-                    shutil.copy2(f, base / "content" / f.name)
+                    dest_f = base / "content" / f.name
+                    shutil.copy2(f, dest_f)
+                    _storage.upload(str(dest_f))
 
         # Overrides: clear then restore
         overrides_dir = base / "overrides"
         overrides_dir.mkdir(exist_ok=True)
-        _clear_lang_overrides(overrides_dir, lang)
+        _clear_lang_overrides(overrides_dir, lang)  # also deletes from cloud
         archived_overrides = src / "overrides"
         if archived_overrides.exists():
             for f in archived_overrides.iterdir():
                 if f.suffix == ".tex":
-                    shutil.copy2(f, overrides_dir / f.name)
+                    dest_f = overrides_dir / f.name
+                    shutil.copy2(f, dest_f)
+                    _storage.upload(str(dest_f))
 
         # Charts
         charts_dest = base / CHARTS_DIR[lang]
@@ -377,7 +388,9 @@ def load_issue(
         if archived_charts.exists():
             for f in archived_charts.iterdir():
                 if f.suffix.lower() in (".png", ".jpg", ".jpeg"):
-                    shutil.copy2(f, charts_dest / f.name)
+                    dest_f = charts_dest / f.name
+                    shutil.copy2(f, dest_f)
+                    _storage.upload(str(dest_f))
 
         return True, f"Issue {issue_num} ({lang.upper()}) loaded successfully."
 
@@ -405,7 +418,9 @@ def new_from_template(lang: str, base_dir: str | os.PathLike) -> tuple[bool, str
         # Config
         tmpl_config = tmpl / CONFIG_FILE[lang]
         if tmpl_config.exists():
-            shutil.copy2(tmpl_config, base / CONFIG_FILE[lang])
+            dest_config = base / CONFIG_FILE[lang]
+            shutil.copy2(tmpl_config, dest_config)
+            _storage.upload(str(dest_config))
 
         # Content files — English only (English embeds text as ECESContent defaults;
         # Arabic uses override files instead, so content files must not change for Arabic)
@@ -414,9 +429,11 @@ def new_from_template(lang: str, base_dir: str | os.PathLike) -> tuple[bool, str
             for fname in CONTENT_FILES[lang]:
                 src = tmpl_content / fname
                 if src.exists():
-                    shutil.copy2(src, base / "content" / fname)
+                    dest_f = base / "content" / fname
+                    shutil.copy2(src, dest_f)
+                    _storage.upload(str(dest_f))
 
-        # Clear overrides for this language
+        # Clear overrides for this language (also deletes from cloud)
         overrides_dir = base / "overrides"
         overrides_dir.mkdir(exist_ok=True)
         _clear_lang_overrides(overrides_dir, lang)
@@ -429,7 +446,9 @@ def new_from_template(lang: str, base_dir: str | os.PathLike) -> tuple[bool, str
                     continue
                 is_ar = f.name.endswith("_ar.tex")
                 if (lang == "ar" and is_ar) or (lang == "en" and not is_ar):
-                    shutil.copy2(f, overrides_dir / f.name)
+                    dest_f = overrides_dir / f.name
+                    shutil.copy2(f, dest_f)
+                    _storage.upload(str(dest_f))
 
         # Charts — copy placeholders from template
         charts_subdir = "charts_ar" if lang == "ar" else "charts"
@@ -439,11 +458,15 @@ def new_from_template(lang: str, base_dir: str | os.PathLike) -> tuple[bool, str
         if tmpl_charts.exists():
             for f in tmpl_charts.iterdir():
                 if f.suffix.lower() in (".png", ".jpg", ".jpeg"):
-                    shutil.copy2(f, charts_dest / f.name)
+                    dest_f = charts_dest / f.name
+                    shutil.copy2(f, dest_f)
+                    _storage.upload(str(dest_f))
         else:
             # Generate placeholders on the fly if template charts are missing
             for fname in CHART_FILENAMES:
-                generate_placeholder_png(charts_dest / fname, label=fname)
+                dest_f = charts_dest / fname
+                generate_placeholder_png(dest_f, label=fname)
+                _storage.upload(str(dest_f))
 
         return True, (
             "Blank template loaded. "
@@ -492,6 +515,7 @@ def delete_issue(
         return False, f"Archive for issue {issue_num} ({lang.upper()}) not found."
     try:
         shutil.rmtree(path)
+        _storage.delete_prefix(f"issues/{lang}/{issue_num}")
         return True, f"Issue {issue_num} ({lang.upper()}) deleted from archive."
     except Exception as e:
         return False, f"Delete failed: {e}"

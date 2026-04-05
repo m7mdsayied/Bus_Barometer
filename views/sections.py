@@ -291,23 +291,7 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                         if _item["exists"]:
                             st.image(_fp, use_container_width=True)
                         else:
-                            st.warning(f"`{_fn}` not uploaded yet — upload below.")
-                        if _role in ("admin", "editor"):
-                            _upl_key = f"upl_inline_{current_section_name}_{_fn}"
-                            _upl = st.file_uploader(
-                                "Replace image", type=["png", "jpg", "jpeg"],
-                                key=_upl_key,
-                            )
-                            if _upl:
-                                _fid = f"{_upl.name}_{_upl.size}"
-                                if st.session_state.get(f"_saved_{_upl_key}") != _fid:
-                                    os.makedirs(os.path.dirname(_fp), exist_ok=True)
-                                    with open(_fp, "wb") as _f:
-                                        _f.write(_upl.getbuffer())
-                                    log_activity("CHART_UPDATED", detail=_fn)
-                                    st.session_state[f"_saved_{_upl_key}"] = _fid
-                                    st.toast(f"✅ {_fn} updated")
-                                    st.rerun()
+                            st.warning(f"`{_fn}` not uploaded yet — use the **Chart Manager** (Step 3) to upload it.")
                         if _is_custom_sec and _role in ("admin", "editor"):
                             if st.button("🗑️ Remove chart",
                                          key=f"rm_ch_{_fn}_{current_section_name}",

@@ -34,6 +34,7 @@ from utils.content import (
     load_custom_sections, sync_custom_sections_file,
 )
 from utils.compiler import _clear_miktex_issues, _get_miktex_env
+from utils import storage as _storage
 
 import views.sections     as _sections
 import views.variables    as _variables
@@ -271,6 +272,7 @@ ACTIVE_CHARTS_DIR = CHARTS_AR_DIR if is_arabic else CHARTS_EN_DIR
 
 # ── App startup tasks (run once per session, not on every rerun) ──────────────
 if not st.session_state.get("_startup_done"):
+    _storage.sync_to_local()
     initialize_factory_backup()
     for _startup_lang in ("English", "Arabic"):
         _suffix = "_ar" if _startup_lang == "Arabic" else ""

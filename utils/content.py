@@ -10,6 +10,7 @@ import time
 
 import streamlit as st
 
+from utils import storage as _storage
 from utils.config import (
     BASE_DIR, BACKUP_DIR, OVERRIDES_DIR, CUSTOM_SECTIONS_FILE,
     SECTION_TEMPLATES, CHART_LABELS, SLOT_LABELS,
@@ -30,6 +31,7 @@ def load_file(filepath: str) -> str:
 def save_file(filepath: str, content: str):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
+    _storage.upload(filepath)
 
 
 # ── Factory Reset ─────────────────────────────────────────────────────────────
@@ -67,6 +69,7 @@ def initialize_factory_backup() -> bool:
                 os.path.join(BACKUP_DIR, config_file),
             )
 
+    _storage.upload_dir(BACKUP_DIR)
     return True
 
 
@@ -85,7 +88,9 @@ def factory_reset(target: str = "all"):
                 count = 0
                 for f in os.listdir(OVERRIDES_DIR):
                     if f.endswith(".tex"):
-                        os.remove(os.path.join(OVERRIDES_DIR, f))
+                        fpath = os.path.join(OVERRIDES_DIR, f)
+                        os.remove(fpath)
+                        _storage.delete(fpath)
                         count += 1
                 return True, f"Cleared {count} content overrides"
             return True, "No overrides to clear"
@@ -94,30 +99,29 @@ def factory_reset(target: str = "all"):
             backup_content = os.path.join(BACKUP_DIR, "content")
             if os.path.exists(backup_content):
                 for file in os.listdir(backup_content):
-                    shutil.copy2(
-                        os.path.join(backup_content, file),
-                        os.path.join(BASE_DIR, "content", file),
-                    )
+                    dst = os.path.join(BASE_DIR, "content", file)
+                    shutil.copy2(os.path.join(backup_content, file), dst)
+                    _storage.upload(dst)
 
             backup_static = os.path.join(BACKUP_DIR, "static_sections")
             if os.path.exists(backup_static):
                 for file in os.listdir(backup_static):
-                    shutil.copy2(
-                        os.path.join(backup_static, file),
-                        os.path.join(BASE_DIR, "static_sections", file),
-                    )
+                    dst = os.path.join(BASE_DIR, "static_sections", file)
+                    shutil.copy2(os.path.join(backup_static, file), dst)
+                    _storage.upload(dst)
 
             for config_file in ["config.tex", "config_ar.tex"]:
                 if os.path.exists(os.path.join(BACKUP_DIR, config_file)):
-                    shutil.copy2(
-                        os.path.join(BACKUP_DIR, config_file),
-                        os.path.join(BASE_DIR, config_file),
-                    )
+                    dst = os.path.join(BASE_DIR, config_file)
+                    shutil.copy2(os.path.join(BACKUP_DIR, config_file), dst)
+                    _storage.upload(dst)
 
             if os.path.exists(OVERRIDES_DIR):
                 for f in os.listdir(OVERRIDES_DIR):
                     if f.endswith(".tex"):
-                        os.remove(os.path.join(OVERRIDES_DIR, f))
+                        fpath = os.path.join(OVERRIDES_DIR, f)
+                        os.remove(fpath)
+                        _storage.delete(fpath)
 
             return True, "All files restored to factory state (including content overrides)"
 
@@ -133,6 +137,7 @@ def factory_reset(target: str = "all"):
                 return False, f"File {target} not found in backup"
 
             shutil.copy2(src, dst)
+            _storage.upload(dst)
 
             base_name = target.replace(".tex", "").replace("_ar", "")
             if len(base_name) > 3 and base_name[2] == "_":
@@ -140,7 +145,9 @@ def factory_reset(target: str = "all"):
             if os.path.exists(OVERRIDES_DIR):
                 for f in os.listdir(OVERRIDES_DIR):
                     if f.startswith(base_name.split("_")[0] + "_") and f.endswith(".tex"):
-                        os.remove(os.path.join(OVERRIDES_DIR, f))
+                        fpath = os.path.join(OVERRIDES_DIR, f)
+                        os.remove(fpath)
+                        _storage.delete(fpath)
 
             return True, f"Restored {target} (and cleared related overrides)"
 
@@ -162,6 +169,7 @@ def load_custom_sections() -> dict:
 def save_custom_sections(data: dict):
     with open(CUSTOM_SECTIONS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    _storage.upload(CUSTOM_SECTIONS_FILE)
     # Bust the section-map cache so the sidebar reflects the change immediately
     try:
         st.cache_data.clear()
@@ -182,6 +190,7 @@ def add_custom_section(lang: str, title: str, sec_type: str):
         os.makedirs(os.path.dirname(_fpath), exist_ok=True)
         with open(_fpath, "w", encoding="utf-8") as f:
             f.write(_tex)
+        _storage.upload(_fpath)
         _cs[_lang_key].append({"id": _id, "title": title, "type": sec_type, "file": _fname})
         save_custom_sections(_cs)
         sync_custom_sections_file(lang)
@@ -209,6 +218,7 @@ def sync_custom_sections_file(lang: str):
         lines.append(f"\\clearpage\n\\input{{{sec['file']}}}\n")
     with open(_fname, "w", encoding="utf-8") as f:
         f.writelines(lines)
+    _storage.upload(_fname)
 
 
 def _build_section_map(lang: str, base_sections: dict) -> dict:
@@ -273,6 +283,7 @@ def get_slot_content(slot_id: str, default_text: str):
 
 
 def save_slot(slot_id: str, content: str):
+    # save_file() already calls _storage.upload()
     save_file(os.path.join(OVERRIDES_DIR, f"{slot_id}.tex"), content)
 
 
@@ -280,6 +291,7 @@ def reset_slot(slot_id: str):
     override_path = os.path.join(OVERRIDES_DIR, f"{slot_id}.tex")
     if os.path.exists(override_path):
         os.remove(override_path)
+        _storage.delete(override_path)
 
 
 def get_all_section_slots(section_file_path: str) -> list:
@@ -420,11 +432,13 @@ def remove_chart_slot_from_section(file_path: str, filename: str):
 
 
 def reset_all_overrides():
-    """Remove all override files."""
+    """Remove all override files (local + cloud)."""
     if os.path.exists(OVERRIDES_DIR):
         for f in os.listdir(OVERRIDES_DIR):
             if f.endswith(".tex"):
-                os.remove(os.path.join(OVERRIDES_DIR, f))
+                fpath = os.path.join(OVERRIDES_DIR, f)
+                os.remove(fpath)
+                _storage.delete(fpath)
 
 
 # ── Label Helpers ─────────────────────────────────────────────────────────────

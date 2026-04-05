@@ -4,6 +4,7 @@ import re
 
 import streamlit as st
 
+from utils import storage as _storage
 from utils.auth import log_activity
 from utils.config import CHART_LABELS, CHART_SECTIONS
 from utils.content import page_header
@@ -17,6 +18,7 @@ def _dlg_delete_chart(filepath: str, filename: str):
         if st.button("🗑️ Delete", type="primary", use_container_width=True):
             try:
                 os.remove(filepath)
+                _storage.delete(filepath)
                 log_activity("CHART_DELETED", detail=filename)
                 st.toast(f"{filename} deleted.", icon="🗑️")
                 st.rerun()
@@ -79,6 +81,7 @@ def render(ctx):
                             if st.session_state.get(f"_saved_{_up_key}") != _fid:
                                 with open(filepath, "wb") as f:
                                     f.write(uploaded.getbuffer())
+                                _storage.upload(filepath)
                                 log_activity("CHART_UPDATED", detail=filename)
                                 st.session_state[f"_saved_{_up_key}"] = _fid
                                 st.toast(f"✅ Updated {filename}")
@@ -130,6 +133,7 @@ def render(ctx):
                         else:
                             with open(_dest, "wb") as f:
                                 f.write(_new_file.getbuffer())
+                            _storage.upload(_dest)
                             log_activity("CHART_UPLOADED", detail=_save_name)
                             st.session_state["_saved_new_chart"] = _fid
                             st.toast(f"✅ {_save_name} uploaded.", icon="📊")
