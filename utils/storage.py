@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import streamlit as st
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 
@@ -192,6 +193,7 @@ def sync_to_local():
     Supabase always wins over git-cloned defaults so user-saved data is restored.
     Safe to overwrite because this function runs only once per session (guarded by
     _startup_done in session state), so in-session writes are never clobbered.
+    Downloads are parallelised (up to 8 concurrent connections) to minimise wait time.
     """
     if not _enabled():
         return
@@ -209,13 +211,20 @@ def sync_to_local():
             icon="⚠️",
         )
         return
+
     base = _base_dir()
-    for key in _list_all_keys():
+    all_keys = _list_all_keys()
+
+    def _download_one(key: str):
         local_path = base / key
         try:
             local_path.parent.mkdir(parents=True, exist_ok=True)
             data = _bucket().download(key)
-            with open(local_path, "wb") as f:
-                f.write(data)
+            with open(local_path, "wb") as fh:
+                fh.write(data)
         except Exception:
             pass  # Skip objects that fail to download; don't block startup
+
+    # Parallel downloads — dramatically faster than sequential for many files
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        pool.map(_download_one, all_keys)
