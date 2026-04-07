@@ -20,6 +20,7 @@ become no-ops and the app behaves exactly as it did before.
 from __future__ import annotations
 
 import streamlit as st
+import threading
 from pathlib import Path
 
 
@@ -69,9 +70,15 @@ def _content_type(path: str | Path) -> str:
 # ── Core operations ───────────────────────────────────────────────────────────
 
 def upload(local_path: str | Path):
-    """Upload a single local file to Supabase Storage (upsert)."""
+    """Upload a single local file to Supabase Storage (upsert) in a background thread."""
     if not _enabled():
         return
+    # Fire-and-forget: the file is already saved locally; cloud sync can happen async.
+    threading.Thread(target=_upload_sync, args=(local_path,), daemon=True).start()
+
+
+def _upload_sync(local_path: str | Path):
+    """Blocking upload — runs in a background thread so the UI is never blocked."""
     try:
         key = _key(local_path)
         with open(local_path, "rb") as f:

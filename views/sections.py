@@ -319,7 +319,7 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"]:last-child
                 key=f"save_slots_{current_section_name}",
             )
             if save_clicked:
-                default_map = {sid: dtxt for sid, dtxt in extract_slots(raw_content)}
+                default_map = {sid: dtxt for sid, dtxt in slots}
                 saved_count = reset_count = 0
 
                 for _sid in _text_slot_ids:

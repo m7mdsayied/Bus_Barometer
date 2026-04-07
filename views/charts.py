@@ -10,6 +10,17 @@ from utils.config import CHART_LABELS, CHART_SECTIONS
 from utils.content import page_header
 
 
+@st.cache_data(ttl=5)
+def _list_images(directory: str) -> list[str]:
+    """Return sorted list of image filenames in directory (cached for 5 s)."""
+    if not os.path.exists(directory):
+        return []
+    return sorted(
+        f for f in os.listdir(directory)
+        if f.lower().endswith((".png", ".jpg", ".jpeg"))
+    )
+
+
 @st.dialog("Delete Chart?")
 def _dlg_delete_chart(filepath: str, filename: str):
     st.warning(f"Permanently delete **{filename}**? This cannot be undone.")
@@ -21,6 +32,7 @@ def _dlg_delete_chart(filepath: str, filename: str):
                 _storage.delete(filepath)
                 log_activity("CHART_DELETED", detail=filename)
                 st.toast(f"{filename} deleted.", icon="🗑️")
+                _list_images.clear()
                 st.rerun()
             except Exception as e:
                 st.error(str(e))
@@ -43,10 +55,7 @@ def render(ctx):
         if not os.path.exists(directory):
             st.error("Directory not found.")
             return
-        files = sorted([
-            f for f in os.listdir(directory)
-            if f.lower().endswith((".png", ".jpg", ".jpeg"))
-        ])
+        files = _list_images(directory)
         if filter_files is not None:
             files = [f for f in files if f.lower() in [x.lower() for x in filter_files]]
         if not files:
@@ -85,6 +94,7 @@ def render(ctx):
                                 log_activity("CHART_UPDATED", detail=filename)
                                 st.session_state[f"_saved_{_up_key}"] = _fid
                                 st.toast(f"✅ Updated {filename}")
+                                _list_images.clear()
                                 st.rerun()
 
     with tab_charts:
@@ -137,6 +147,7 @@ def render(ctx):
                             log_activity("CHART_UPLOADED", detail=_save_name)
                             st.session_state["_saved_new_chart"] = _fid
                             st.toast(f"✅ {_save_name} uploaded.", icon="📊")
+                            _list_images.clear()
                             st.rerun()
 
         render_image_manager(ctx.ACTIVE_CHARTS_DIR, filter_files=_filter_files, allow_delete=True)

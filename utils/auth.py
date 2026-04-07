@@ -33,8 +33,10 @@ def log_activity(action: str, user: str = "", detail: str = ""):
     for handler in _activity_logger.handlers:
         handler.flush()
     _storage.upload(ACTIVITY_LOG)
+    parse_activity_log.clear()
 
 
+@st.cache_data(ttl=30)
 def parse_activity_log() -> list:
     """Parse activity.log into structured records for the Activity Log viewer."""
     import os
@@ -73,6 +75,7 @@ def verify_password(plain: str, stored: str) -> bool:
 
 
 # ── User Store ───────────────────────────────────────────────────────────────
+@st.cache_data(ttl=60)
 def load_users() -> dict:
     """Load from users.json; falls back to st.secrets['users_json'] (raw JSON string) for cloud deployment."""
     try:
@@ -90,6 +93,7 @@ def save_users(users: dict):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, indent=4, ensure_ascii=False)
     _storage.upload(USERS_FILE)
+    load_users.clear()
 
 
 # ── Session Helpers ───────────────────────────────────────────────────────────

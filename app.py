@@ -287,9 +287,9 @@ if not st.session_state.get("_startup_done"):
 # ── Active config ─────────────────────────────────────────────────────────────
 active_config = PROJECT_CONFIG[st.session_state["language"]]
 
-@st.cache_data(ttl=2)
+@st.cache_data(ttl=60)
 def _cached_section_map(lang: str, base_sections_key: str):
-    """Cache the merged section map for 2 s — avoids JSON read on every rerun."""
+    """Cache the merged section map for 60 s — avoids JSON read on every rerun."""
     return _build_section_map(lang, PROJECT_CONFIG[lang]["sections"])
 
 SECTION_MAP   = _cached_section_map(st.session_state["language"], st.session_state["language"])

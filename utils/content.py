@@ -156,6 +156,7 @@ def factory_reset(target: str = "all"):
 
 
 # ── Custom Sections ───────────────────────────────────────────────────────────
+@st.cache_data(ttl=5)
 def load_custom_sections() -> dict:
     if os.path.exists(CUSTOM_SECTIONS_FILE):
         try:
@@ -170,7 +171,8 @@ def save_custom_sections(data: dict):
     with open(CUSTOM_SECTIONS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     _storage.upload(CUSTOM_SECTIONS_FILE)
-    # Bust the section-map cache so the sidebar reflects the change immediately
+    # Bust all relevant caches so the sidebar and editors reflect the change immediately
+    load_custom_sections.clear()
     try:
         st.cache_data.clear()
     except Exception:
@@ -285,6 +287,8 @@ def get_slot_content(slot_id: str, default_text: str):
 def save_slot(slot_id: str, content: str):
     # save_file() already calls _storage.upload()
     save_file(os.path.join(OVERRIDES_DIR, f"{slot_id}.tex"), content)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
 
 
 def reset_slot(slot_id: str):
@@ -292,8 +296,11 @@ def reset_slot(slot_id: str):
     if os.path.exists(override_path):
         os.remove(override_path)
         _storage.delete(override_path)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
 
 
+@st.cache_data(ttl=2)
 def get_all_section_slots(section_file_path: str) -> list:
     """Return [(slot_id, current_text, is_overridden, default_text), ...]."""
     tex_content = load_file(section_file_path)
@@ -317,6 +324,7 @@ def _extract_brace_content(tex: str, pos: int) -> str:
     return tex[pos:j - 1]
 
 
+@st.cache_data(ttl=2)
 def extract_section_items(tex_content: str, charts_dir: str) -> list:
     """
     Parse a .tex file and return ordered list of editable items.
@@ -377,6 +385,8 @@ def append_text_slot_to_section(file_path: str) -> str:
     else:
         content += new_block
     save_file(file_path, content)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
     return slot_id
 
 
@@ -397,6 +407,8 @@ def append_chart_slot_to_section(file_path: str) -> str:
     else:
         content += new_block
     save_file(file_path, content)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
     return img_id
 
 
@@ -415,6 +427,8 @@ def remove_text_slot_from_section(file_path: str, slot_id: str):
         content = pattern2.sub("", content)
     save_file(file_path, content)
     reset_slot(slot_id)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
 
 
 def remove_chart_slot_from_section(file_path: str, filename: str):
@@ -429,6 +443,8 @@ def remove_chart_slot_from_section(file_path: str, filename: str):
     )
     content = pattern.sub("", content)
     save_file(file_path, content)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
 
 
 def reset_all_overrides():
@@ -439,6 +455,8 @@ def reset_all_overrides():
                 fpath = os.path.join(OVERRIDES_DIR, f)
                 os.remove(fpath)
                 _storage.delete(fpath)
+    get_all_section_slots.clear()
+    extract_section_items.clear()
 
 
 # ── Label Helpers ─────────────────────────────────────────────────────────────
