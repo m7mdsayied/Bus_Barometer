@@ -2,17 +2,16 @@
 import os
 import re
 import shutil
+import subprocess
 
 import streamlit as st
 
 import issue_manager as _im
 from utils import storage as _storage
 from utils.auth import log_activity
-from utils.compiler import _clear_miktex_issues, _get_miktex_env
+from utils.compiler import _clear_miktex_issues, _get_miktex_env, convert_pdf_to_docx, parse_latex_log
 from utils.content import load_file, page_header
 from utils.config import BASE_DIR
-
-import subprocess
 
 
 def render(ctx):
@@ -51,13 +50,15 @@ def render(ctx):
 
                     st.write("Running xelatex (Pass 1)...")
                     _clear_miktex_issues()
-                    subprocess.run(cmd, cwd=ctx.BASE_DIR, stdout=subprocess.DEVNULL,
-                                   env=_get_miktex_env())
+                    r1 = subprocess.run(cmd, cwd=ctx.BASE_DIR, capture_output=True,
+                                        text=True, env=_get_miktex_env())
+                    if r1.returncode != 0:
+                        st.warning("Pass 1 had warnings (continuing to pass 2)...")
 
                     st.write("Running xelatex (Pass 2 for ToC)...")
                     _clear_miktex_issues()
-                    subprocess.run(cmd, cwd=ctx.BASE_DIR, stdout=subprocess.DEVNULL,
-                                   env=_get_miktex_env())
+                    r2 = subprocess.run(cmd, cwd=ctx.BASE_DIR, capture_output=True,
+                                        text=True, env=_get_miktex_env())
 
                     expected_pdf = target_main.replace(".tex", ".pdf")
                     _src_pdf = os.path.join(ctx.BASE_DIR, expected_pdf)
@@ -70,10 +71,27 @@ def render(ctx):
                         st.session_state["final_pdf_path"] = _dest
                         st.session_state["final_pdf_label"] = _fname_input
                         log_activity("PDF_GENERATED", detail=_fname_input)
+
+                        # Convert PDF to editable DOCX
+                        st.write("Converting PDF to DOCX...")
+                        _docx_fname = _fname_input.replace(".pdf", ".docx")
+                        _docx_dest = os.path.join(REPORTS_DIR, _docx_fname)
+                        _docx_path, _docx_err = convert_pdf_to_docx(_dest, _docx_dest)
+                        if _docx_path:
+                            _storage.upload(_docx_dest)
+                            st.session_state["final_docx_path"] = _docx_dest
+                            st.session_state["final_docx_label"] = _docx_fname
+                            log_activity("DOCX_GENERATED", detail=_docx_fname)
+                        else:
+                            st.warning(f"PDF created but DOCX conversion failed: {_docx_err}")
+
                         status.update(label="Success!", state="complete", expanded=False)
                     else:
                         status.update(label="Compilation Failed", state="error")
-                        st.error("PDF was not created. Check logs.")
+                        _log_path = os.path.join(ctx.BASE_DIR, target_main.replace(".tex", ".log"))
+                        _errors = parse_latex_log(_log_path)
+                        st.error("PDF was not created. LaTeX errors:")
+                        st.code(_errors, language="text")
                 except Exception as e:
                     status.update(label="Error", state="error")
                     st.error(str(e))
@@ -97,17 +115,39 @@ def render(ctx):
                     width="stretch",
                 )
 
+        _docx_default = _default_fname.replace(".pdf", ".docx")
+        _docx_path = st.session_state.get("final_docx_path")
+        _docx_label = st.session_state.get("final_docx_label", _docx_default)
+        if not _docx_path:
+            _docx_fallback = os.path.join(REPORTS_DIR, _docx_default)
+            if os.path.exists(_docx_fallback):
+                _docx_path = _docx_fallback
+                _docx_label = _docx_default
+        if _docx_path and os.path.exists(_docx_path):
+            with open(_docx_path, "rb") as f:
+                st.download_button(
+                    label="📥 Download DOCX (editable)",
+                    data=f,
+                    file_name=_docx_label,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    width="stretch",
+                )
+
     with st.expander("📁 Reports Archive", expanded=False):
         _rpts = (
-            sorted([f for f in os.listdir(REPORTS_DIR) if f.endswith(".pdf")], reverse=True)
+            sorted([f for f in os.listdir(REPORTS_DIR)
+                     if f.endswith((".pdf", ".docx")) and not f.startswith("~$")],
+                    reverse=True)
             if os.path.exists(REPORTS_DIR) else []
         )
         if _rpts:
             for _rf in _rpts:
                 _rp = os.path.join(REPORTS_DIR, _rf)
+                _mime = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                         if _rf.endswith(".docx") else "application/pdf")
                 with open(_rp, "rb") as _f:
                     st.download_button(
-                        _rf, _f, file_name=_rf, mime="application/pdf",
+                        _rf, _f, file_name=_rf, mime=_mime,
                         key=f"dl_archive_{_rf}",
                     )
         else:
@@ -171,5 +211,5 @@ def render(ctx):
 
     st.divider()
     st.success(
-        "✅ **Workflow Complete** — compile the report above, save the issue, and download your PDF."
+        "✅ **Workflow Complete** — compile the report above, save the issue, and download your PDF or editable DOCX."
     )

@@ -10,6 +10,22 @@ from utils.config import VARIABLE_LABELS
 _LATEX_SPECIAL = re.compile(r'[\\{}_^#%&$]')
 
 
+def _sanitize_latex_value(val: str) -> str:
+    """Escape LaTeX special characters in user-provided config values.
+    These are plain-text fields (issue number, quarter names) — raw commands are never intended."""
+    # Order matters: backslash first to avoid double-escaping
+    for old, new in [
+        ('\\', r'\textbackslash{}'),
+        ('{', r'\{'), ('}', r'\}'),
+        ('#', r'\#'), ('%', r'\%'),
+        ('&', r'\&'), ('$', r'\$'),
+        ('^', r'\^{}'), ('_', r'\_'),
+        ('~', r'\~{}'),
+    ]:
+        val = val.replace(old, new)
+    return val
+
+
 def render(ctx):
     page_header(
         "⚙️", "Global Configuration",
@@ -41,17 +57,16 @@ def render(ctx):
         if st.form_submit_button("💾 Update Variables", type="primary"):
             _risky = [k for k, v in updates.items() if _LATEX_SPECIAL.search(v)]
             if _risky:
-                st.warning(
-                    "⚠️ Some values contain LaTeX special characters "
-                    f"(`\\`, `{{`, `}}`, `#`, `%`, `&`, `$`, `^`, `_`) in: "
+                st.info(
+                    "Special characters were auto-escaped in: "
                     + ", ".join(f"**{k}**" for k in _risky)
-                    + ". Verify the compiled output carefully."
+                    + ". This prevents LaTeX errors."
                 )
             new_config = raw_config
             for key, val in updates.items():
+                safe_val = _sanitize_latex_value(val) if _LATEX_SPECIAL.search(val) else val
                 regex_replace = r"(\\newcommand\{\\" + key + r"\}\{)(.*?)(\})"
-                # Use a lambda so val is never interpreted as a regex replacement string
-                new_config = re.sub(regex_replace, lambda m, v=val: m.group(1) + v + m.group(3), new_config)
+                new_config = re.sub(regex_replace, lambda m, v=safe_val: m.group(1) + v + m.group(3), new_config)
             save_file(ctx.CONFIG_FILE, new_config)
             st.toast("Updated!", icon="⚙️")
             st.rerun()

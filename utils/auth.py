@@ -81,11 +81,14 @@ def load_users() -> dict:
     try:
         with open(USERS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except Exception:
-        pass
+    except FileNotFoundError:
+        pass  # Expected on cloud — fall through to secrets
+    except Exception as e:
+        _activity_logger.warning("users.json read error: %s", e)
     try:
         return json.loads(st.secrets["users_json"])
-    except Exception:
+    except Exception as e:
+        _activity_logger.error("No user store available — both users.json and secrets failed: %s", e)
         return {}
 
 
@@ -134,10 +137,24 @@ def _touch_session():
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
+_MAX_LOGIN_ATTEMPTS = 5
+_LOCKOUT_SECONDS = 300  # 5 minutes
+
+
 def check_login():
     """on_click handler for the login form submit button."""
     username = st.session_state["login_user"].strip()
     password = st.session_state["login_pass"]
+
+    # Rate limiting per username
+    _attempts_key = f"_login_attempts_{username}"
+    _lockout_key = f"_login_lockout_{username}"
+    lockout_until = st.session_state.get(_lockout_key, 0)
+    if time.time() < lockout_until:
+        remaining = int(lockout_until - time.time())
+        st.error(f"Account temporarily locked. Try again in {remaining} seconds.")
+        return
+
     users = load_users()
 
     if username in users:
@@ -148,6 +165,10 @@ def check_login():
                 users[username]["password"] = hash_password(password)
                 save_users(users)
 
+            # Clear failed attempts on success
+            st.session_state.pop(_attempts_key, None)
+            st.session_state.pop(_lockout_key, None)
+
             st.session_state["authenticated"] = True
             st.session_state["current_user"]  = username
             st.session_state["current_role"]  = user.get("role", "viewer")
@@ -155,4 +176,15 @@ def check_login():
             log_activity("LOGIN", username)
             st.toast(f"Welcome back, {username}!", icon="🔓")
             return
-    st.error("❌ Invalid username or password, or account is disabled.")
+
+    # Login failed — track attempts
+    attempts = st.session_state.get(_attempts_key, 0) + 1
+    st.session_state[_attempts_key] = attempts
+    if attempts >= _MAX_LOGIN_ATTEMPTS:
+        st.session_state[_lockout_key] = time.time() + _LOCKOUT_SECONDS
+        st.session_state[_attempts_key] = 0
+        log_activity("LOGIN_LOCKOUT", user=username, detail=f"locked for {_LOCKOUT_SECONDS}s after {_MAX_LOGIN_ATTEMPTS} failures")
+        st.error(f"Too many failed attempts. Account locked for {_LOCKOUT_SECONDS // 60} minutes.")
+        return
+
+    st.error("Invalid username or password, or account is disabled.")

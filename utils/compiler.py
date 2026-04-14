@@ -1,13 +1,16 @@
 """
 LaTeX compiler helpers: MiKTeX path cleaning, log parsing,
-live preview generation, and cross-browser PDF rendering.
+live preview generation, cross-browser PDF rendering, and DOCX conversion.
 """
 import base64
 import json
+import logging
 import os
 import subprocess
 
 import streamlit as st
+
+_log = logging.getLogger("eces_compiler")
 
 
 # ── MiKTeX Helpers ────────────────────────────────────────────────────────────
@@ -35,8 +38,8 @@ def _clear_miktex_issues() -> None:
             if any("not checked for updates" in (item.get("message") or "") for item in data):
                 with open(issues_path, "w", encoding="utf-8") as fh:
                     json.dump([], fh)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.warning("Could not clear MiKTeX issues.json: %s", e)
 
 
 # ── Log Parser ────────────────────────────────────────────────────────────────
@@ -126,12 +129,22 @@ def generate_preview(content_latex: str, preamble_file: str, config_file: str, b
 
     try:
         _clear_miktex_issues()
-        subprocess.run(
+        result = subprocess.run(
             ["xelatex", "-interaction=nonstopmode", preview_tex],
             cwd=base_dir,
-            stdout=subprocess.DEVNULL,
+            capture_output=True, text=True,
             env=_get_miktex_env(),
         )
+        if result.returncode != 0:
+            _log.warning("Preview xelatex exited with code %d", result.returncode)
+        # Clean up auxiliary files
+        for ext in (".aux", ".log", ".out", ".toc"):
+            _aux = os.path.join(base_dir, f"{preview_filename}{ext}")
+            if os.path.exists(_aux):
+                try:
+                    os.remove(_aux)
+                except OSError:
+                    pass
         if os.path.exists(preview_pdf):
             return preview_pdf, None
         else:
@@ -198,3 +211,24 @@ def display_pdf(pdf_path: str, display_width: int = 700):
         st.warning("pymupdf not installed. Run: pip install pymupdf")
     except Exception as e:
         st.error(f"Could not render PDF: {e}")
+
+
+# ── PDF → DOCX Conversion ───────────────────────────────────────────────────
+def convert_pdf_to_docx(pdf_path: str, docx_path: str) -> tuple:
+    """
+    Convert a compiled PDF to an editable DOCX using pdf2docx.
+    Returns (docx_path, error_msg) — one will be None.
+    """
+    try:
+        from pdf2docx import Converter
+        cv = Converter(pdf_path)
+        cv.convert(docx_path)
+        cv.close()
+        if os.path.exists(docx_path):
+            return docx_path, None
+        return None, "DOCX file was not created."
+    except ImportError:
+        return None, "pdf2docx is not installed. Run: pip install pdf2docx"
+    except Exception as e:
+        _log.warning("DOCX conversion failed: %s", e)
+        return None, f"DOCX conversion failed: {e}"

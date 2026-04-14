@@ -3,12 +3,15 @@ File I/O, slot-based content system, custom sections, factory reset,
 and miscellaneous UI helpers (page header, latex block parser).
 """
 import json
+import logging
 import os
 import re
 import shutil
 import time
 
 import streamlit as st
+
+_log = logging.getLogger("eces_content")
 
 from utils import storage as _storage
 from utils.config import (
@@ -162,8 +165,8 @@ def load_custom_sections() -> dict:
         try:
             with open(CUSTOM_SECTIONS_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.warning("Failed to parse %s: %s", CUSTOM_SECTIONS_FILE, e)
     return {"en": [], "ar": []}
 
 
@@ -175,8 +178,8 @@ def save_custom_sections(data: dict):
     load_custom_sections.clear()
     try:
         st.cache_data.clear()
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Cache clear failed: %s", e)
 
 
 def add_custom_section(lang: str, title: str, sec_type: str):

@@ -19,10 +19,13 @@ become no-ops and the app behaves exactly as it did before.
 """
 from __future__ import annotations
 
+import logging
 import streamlit as st
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+_log = logging.getLogger("eces_storage")
 
 
 # ── Config helpers ────────────────────────────────────────────────────────────
@@ -62,6 +65,7 @@ def _content_type(path: str | Path) -> str:
         "jpg":  "image/jpeg",
         "jpeg": "image/jpeg",
         "pdf":  "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "json": "application/json",
         "tex":  "text/plain",
         "log":  "text/plain",
@@ -88,8 +92,8 @@ def _upload_sync(local_path: str | Path):
                 path=key,
                 file_options={"upsert": "true", "content-type": _content_type(local_path)},
             )
-    except Exception:
-        pass  # Never block the UI on a storage failure
+    except Exception as e:
+        _log.warning("Upload failed for %s: %s", local_path, e)
 
 
 def upload_bytes(data: bytes, key: str, content_type: str = "application/octet-stream"):
@@ -102,8 +106,8 @@ def upload_bytes(data: bytes, key: str, content_type: str = "application/octet-s
             path=key,
             file_options={"upsert": "true", "content-type": content_type},
         )
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Upload bytes failed for key %s: %s", key, e)
 
 
 def download(key: str, local_path: str | Path):
@@ -115,8 +119,8 @@ def download(key: str, local_path: str | Path):
         data = _bucket().download(key)
         with open(local_path, "wb") as f:
             f.write(data)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Download failed for key %s: %s", key, e)
 
 
 def delete(local_path_or_key: str | Path):
@@ -128,8 +132,8 @@ def delete(local_path_or_key: str | Path):
         p = Path(local_path_or_key)
         key = _key(p) if p.is_absolute() else str(local_path_or_key).replace("\\", "/")
         _bucket().remove([key])
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Delete failed for %s: %s", local_path_or_key, e)
 
 
 def delete_prefix(prefix: str):
@@ -140,8 +144,8 @@ def delete_prefix(prefix: str):
         keys = _list_all_keys(prefix.rstrip("/"))
         if keys:
             _bucket().remove(keys)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.warning("Delete prefix failed for %s: %s", prefix, e)
 
 
 def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
@@ -163,8 +167,8 @@ def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
                     path=key,
                     file_options={"upsert": "true", "content-type": _content_type(path)},
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            _log.warning("Upload dir failed for %s: %s", path, e)
 
 
 # ── Directory listing ─────────────────────────────────────────────────────────
@@ -173,7 +177,8 @@ def _list_all_keys(prefix: str = "") -> list[str]:
     """Recursively list all object keys under a prefix."""
     try:
         items = _bucket().list(prefix, {"limit": 1000}) or []
-    except Exception:
+    except Exception as e:
+        _log.warning("List keys failed for prefix %s: %s", prefix, e)
         return []
     keys: list[str] = []
     for item in items:
@@ -222,8 +227,8 @@ def sync_to_local():
             data = _bucket().download(key)
             with open(local_path, "wb") as fh:
                 fh.write(data)
-        except Exception:
-            pass  # Skip objects that fail to download; don't block startup
+        except Exception as e:
+            _log.warning("Startup download failed for %s: %s", key, e)
 
     # Parallel downloads — dramatically faster than sequential for many files
     with ThreadPoolExecutor(max_workers=8) as pool:
