@@ -27,6 +27,15 @@ from pathlib import Path
 
 _log = logging.getLogger("eces_storage")
 
+# Prefixes never downloaded at startup — reports are regenerated on demand;
+# templates/ placeholder PNGs are recreated by ensure_template_charts().
+_SYNC_SKIP_PREFIXES = frozenset(["reports/", "templates/"])
+
+# For issues/ only pull the tiny metadata.json at startup so the issue list
+# renders correctly. The full archive (charts, content, overrides) is fetched
+# on demand via sync_issue() when the user actually loads an issue.
+_ISSUES_METADATA_ONLY = True
+
 
 # ── Config helpers ────────────────────────────────────────────────────────────
 
@@ -190,14 +199,69 @@ def _list_all_keys(prefix: str = "") -> list[str]:
     return keys
 
 
+def _list_all_key_sizes(prefix: str = "") -> dict[str, int]:
+    """Recursively list all objects under a prefix, returning {key: size_bytes}.
+
+    The size comes from the Supabase list metadata and is used by sync_to_local()
+    to skip files whose local copy already matches the cloud byte count.
+    Returns -1 for size when the metadata field is absent.
+    """
+    try:
+        items = _bucket().list(prefix, {"limit": 1000}) or []
+    except Exception as e:
+        _log.warning("List key sizes failed for prefix %s: %s", prefix, e)
+        return {}
+    result: dict[str, int] = {}
+    for item in items:
+        full = f"{prefix}/{item['name']}" if prefix else item["name"]
+        if item.get("id") is None:  # virtual folder placeholder → recurse
+            result.update(_list_all_key_sizes(full))
+        else:
+            size = (item.get("metadata") or {}).get("size", -1)
+            result[full] = size
+    return result
+
+
 # ── Startup sync ──────────────────────────────────────────────────────────────
+
+def sync_issue(lang: str, issue_num: str | int):
+    """Download a full archived issue from Supabase on demand.
+
+    Called by issue_manager.load_issue() when the local archive is incomplete
+    (e.g. only metadata.json was fetched at startup).  Already-present files
+    are skipped so repeated calls are cheap.
+    """
+    if not _enabled():
+        return
+    prefix = f"issues/{lang}/{issue_num}"
+    base = _base_dir()
+    for key in _list_all_keys(prefix):
+        local_path = base / key
+        if local_path.exists():
+            continue  # metadata.json or previously downloaded file — skip
+        try:
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            data = _bucket().download(key)
+            local_path.write_bytes(data)
+        except Exception as e:
+            _log.warning("sync_issue failed for %s: %s", key, e)
+
 
 def sync_to_local():
     """
-    Download all Supabase objects to the local filesystem (called once at startup).
+    Download essential Supabase objects to the local filesystem (called once at startup).
     Supabase always wins over git-cloned defaults so user-saved data is restored.
     Safe to overwrite because this function runs only once per session (guarded by
     _startup_done in session state), so in-session writes are never clobbered.
+
+    Egress optimisations applied here:
+      • _SYNC_SKIP_PREFIXES  — reports/ and templates/ are excluded entirely
+        (reports are regenerated; template placeholder PNGs are recreated locally).
+      • _ISSUES_METADATA_ONLY — only issues/*/metadata.json is fetched so the
+        issue list renders correctly; full archives are pulled on demand via sync_issue().
+      • Size-based deduplication — a file whose local byte count already matches
+        the cloud size is skipped, saving redundant downloads on warm containers.
+
     Downloads are parallelised (up to 8 concurrent connections) to minimise wait time.
     """
     if not _enabled():
@@ -218,18 +282,31 @@ def sync_to_local():
         return
 
     base = _base_dir()
-    all_keys = _list_all_keys()
+    all_objects = _list_all_key_sizes()  # {key: size_bytes}
 
-    def _download_one(key: str):
+    def _should_sync(key: str) -> bool:
+        for prefix in _SYNC_SKIP_PREFIXES:
+            if key.startswith(prefix):
+                return False
+        if _ISSUES_METADATA_ONLY and key.startswith("issues/"):
+            return key.endswith("/metadata.json")
+        return True
+
+    filtered = {k: v for k, v in all_objects.items() if _should_sync(k)}
+
+    def _download_one(key_size: tuple):
+        key, cloud_size = key_size
         local_path = base / key
+        # Skip when the local file already has the exact same byte count
+        if cloud_size > 0 and local_path.exists() and local_path.stat().st_size == cloud_size:
+            return
         try:
             local_path.parent.mkdir(parents=True, exist_ok=True)
             data = _bucket().download(key)
-            with open(local_path, "wb") as fh:
-                fh.write(data)
+            local_path.write_bytes(data)
         except Exception as e:
             _log.warning("Startup download failed for %s: %s", key, e)
 
     # Parallel downloads — dramatically faster than sequential for many files
     with ThreadPoolExecutor(max_workers=8) as pool:
-        pool.map(_download_one, all_keys)
+        pool.map(_download_one, filtered.items())

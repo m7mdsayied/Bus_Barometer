@@ -349,6 +349,14 @@ def load_issue(
     """
     base = Path(base_dir).resolve()
     src = base / "issues" / lang / str(issue_num)
+
+    # At startup only metadata.json is synced for each issue to save egress.
+    # If the full archive hasn't been downloaded yet (charts/ is absent or empty),
+    # fetch it on demand now before we try to copy files from it.
+    charts_dir = src / "charts"
+    if src.exists() and (not charts_dir.exists() or not any(charts_dir.iterdir())):
+        _storage.sync_issue(lang, str(issue_num))
+
     if not src.exists():
         return False, f"Archive for issue {issue_num} ({lang.upper()}) not found."
 
