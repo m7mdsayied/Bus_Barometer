@@ -3,16 +3,14 @@
 % =========================================================
 
 % 1. Adjust Geometry
-% Shift margins to the right to avoid the sidebar in exc_bg.png
-% Left margin approx 5cm, Right 1.5cm, Bottom slightly reduced to prevent cutoff
 \newgeometry{left=5cm, right=1.5cm, top=1cm, bottom=2cm}
 
 % ---------------------------------------------------------
 % TITLE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle} 
-Executive Summary
+{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle}
+\ECESContent{title_exec_summary}{Executive Summary}
 }} \par\vspace{0.4em}
 \label{sec:exec_summary}
 % ---------------------------------------------------------
@@ -20,13 +18,12 @@ Executive Summary
 % ---------------------------------------------------------
 \noindent
 {\fontsize{10}{13}\selectfont \color{black}
-\ECESContent{exec_intro}{This edition of Business Barometer presents a periodic assessment conducted by the Egyptian Center for Economic Studies (ECES) of a sample of 120 private sector firms spanning various sectors and sizes. It reflects the business community’s views on developments in a number of variables, specifically: production, domestic sales, exports, commodity inventory, capacity utilization, prices, wages, employment, and investment, during the quarter \CurrentQuarterText. It also presents its projections for the quarter \NextQuarterText, and compares the results with the previous quarter (\PreviousQuarterText) and the corresponding quarter (\CorrespQuarterText). The following is a brief overview of the report’s key findings for the quarter under study (\CurrentQuarterText).}
+\ECESContent{exec_intro}{[TODO: Enter the introductory paragraph describing the scope of the Business Barometer survey for Issue \IssueNumber. Mention the quarter \CurrentQuarterText, the next quarter \NextQuarterText, the previous quarter \PreviousQuarterText, and the corresponding quarter \CorrespQuarterText.]}
 } \par\vspace{0.8em}
 
 % ---------------------------------------------------------
 % SUBHEADER AND ARROW LEGEND
 % ---------------------------------------------------------
-% Increased left width to 62% to prevent underline from breaking the bounds
 \noindent
 \begin{minipage}[c]{0.62\textwidth}
     {\fontsize{11}{14}\selectfont
@@ -45,32 +42,29 @@ Executive Summary
 % ---------------------------------------------------------
 % BOXED CONTENT (HIGHLIGHTS)
 % ---------------------------------------------------------
-% Node width strictly calculated to avoid margin overflow
 \noindent
 \begin{tikzpicture}
     \node[draw=black, line width=0.8pt, inner sep=8pt, align=justify, text width=\dimexpr\textwidth-18pt\relax] (box) {
         \fontsize{10}{13}\selectfont
-        
-        \ECESContent{exec_box_overall}{- The business performance index for the quarter \CurrentQuarterText{} surpassed the neutral level\\
-        - The expectations index surpassed the neutral level for the upcoming quarter}
-        
+
+        \ECESContent{exec_box_overall}{[TODO: Enter 1-2 bullet points on overall Business Performance Index and Expectations Index for \CurrentQuarterText.]}
+
         \vspace{0.3em}
         \textbf{\color{textblue} \underline{According to size:}} \\
         {\color{textblue}
-        \ECESContent{exec_box_size}{- There is no variation in performance across firm sizes, as the business performance index for all firms exceeded the neutral level.}
+        \ECESContent{exec_box_size}{[TODO: Enter 1-2 bullet points on BPI performance by firm size (large vs. SMEs) for \CurrentQuarterText.]}
         }
 
         \vspace{0.3em}
         \textbf{\color{textpurple} \underline{Sectorally:}} \\
         {\color{textpurple}
-         \ECESContent{exec_box_sector}{- Performance indicators for all sectors exceeded the neutral level, with the exception of the manufacturing sector, which saw the lowest performance among sectors, achieving values below the neutral level.}
+         \ECESContent{exec_box_sector}{[TODO: Enter 1-2 bullet points on BPI performance by sector for \CurrentQuarterText.]}
         }
 
         \vspace{0.3em}
         \textbf{\color{textgreen} \underline{Challenges:}} \\
-        {\color{textgreen} 
-        \ECESContent{exec_box_challenges}{- Frequent hikes in energy and water prices top the list of constraints facing all firms, followed by the challenges related to higher inflation, then difficulties in dealing with government entities.\\
-        - The manufacturing and construction sectors, as well as small and medium-sized enterprises (SMEs), have been the most affected.}
+        {\color{textgreen}
+        \ECESContent{exec_box_challenges}{[TODO: Enter 1-2 bullet points on top business constraints for \CurrentQuarterText.]}
         }
     };
 \end{tikzpicture}
@@ -80,16 +74,16 @@ Executive Summary
 % ---------------------------------------------------------
 % BOTTOM TEXT AND CHART
 % ---------------------------------------------------------
-% Adjusted minipage allocations (58% / 38%) to bring the text and chart closer visually
+%% TODO: Upload ch1.png — Business Performance Index (overall trend chart) via Chart Manager
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
     \fontsize{10}{13}\selectfont
-    \vspace{0pt} % Baseline anchor
-    \ECESContent{exec_bpi_analysis}{The Business Performance Index (BPI) for the quarter under review (\CurrentQuarterText) scored values one point above the neutral level, with sub-indices maintaining their good performance. Compared to the previous quarter, the BPI declined by about 7 points, due to a sharp decline in the wage index after a significant jump in the previous quarter, and to a decline in the production, sales, and capacity utilization indices, although they still registered values above the neutral level.}
+    \vspace{0pt}
+    \ECESContent{exec_bpi_analysis}{[TODO: Enter analysis of the Business Performance Index for \CurrentQuarterText. Compare to previous quarter \PreviousQuarterText and corresponding quarter \CorrespQuarterText.]}
 \end{minipage}%
 \hfill
 \begin{minipage}[t]{0.38\textwidth}
-    \vspace{0pt} % Baseline anchor
+    \vspace{0pt}
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{ch1.png}
 \end{minipage}
@@ -98,7 +92,7 @@ Executive Summary
 
 \noindent
 {\fontsize{10}{13}\selectfont
-\ECESContent{exec_expectations}{The Performance Expectations Index for the quarter \NextQuarterText{} also recorded values 4 points above the neutral level, which is attributed to expectations that all sub-indices will surpass the neutral level, reflecting the expected stability of the indices at the same performance as the current quarter, with the exception of the tourism, communications.}
+\ECESContent{exec_expectations}{[TODO: Enter analysis of the Performance Expectations Index for the upcoming quarter \NextQuarterText.]}
 }
 
 \clearpage
@@ -110,18 +104,19 @@ Executive Summary
 % ---------------------------------------------------------
 % SECTION 1: ACCORDING TO SIZE
 % ---------------------------------------------------------
+%% TODO: Upload ch2.png — BPI by Firm Size chart via Chart Manager
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
-    \vspace{0pt} % Alignment anchor
+    \vspace{0pt}
     {\fontsize{10}{13}\selectfont \textbf{\color{textblue} \underline{According to size:}}} \vspace{0.6em}
 
     {\fontsize{10}{13}\selectfont
-    \ECESContent{exec_size_detail}{There is no variation in performance across firm sizes. The business performance index for all firms exceeded the neutral level during the quarter under study, recording lower values than the previous quarter, but better than the corresponding quarter. This reflects the consistent good performance of all sub-indices and the improvement in the export index for large firms during the current quarter.}
+    \ECESContent{exec_size_detail}{[TODO: Enter detailed analysis of BPI by firm size (large vs. SMEs) for \CurrentQuarterText.]}
     }
 \end{minipage}%
 \hfill
 \begin{minipage}[t]{0.38\textwidth}
-    \vspace{0pt} % Alignment anchor
+    \vspace{0pt}
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{ch2.png}
 \end{minipage}
@@ -136,27 +131,27 @@ Executive Summary
 
 \noindent
 {\fontsize{10}{13}\selectfont
-\ECESContent{exec_sector_summary}{Performance indicators for all sectors exceeded the neutral level, with the exception of the manufacturing sector, which saw the lowest performance, scoring values below the neutral level. Meanwhile, the performance index for the construction sector recorded values at the neutral level.}
+\ECESContent{exec_sector_summary}{[TODO: Enter summary of BPI by sector for \CurrentQuarterText. Mention best- and worst-performing sectors.]}
 }
 
 \vspace{1.2em}
 
-% Middle Chart (Sectors)
+%% TODO: Upload ch3.png — BPI by Economic Sector chart via Chart Manager
 \noindent
 \includegraphics[width=\linewidth, keepaspectratio]{ch3.png}
 
 \vspace{1.2em}
 
 % ---------------------------------------------------------
-% SECTION 3: DETAILED TEXT (Manufacturing & Telecom)
+% SECTION 3: DETAILED TEXT (Sector highlights)
 % ---------------------------------------------------------
 \noindent
 {\fontsize{10}{13}\selectfont
-\ECESContent{exec_manufacturing}{The manufacturing sector recorded the lowest performance, with values two points below the neutral level and seven points lower than the previous quarter, albeit one point better than the corresponding quarter. This is primarily due to the decline in all sector indices below the neutral level during the quarter under review, and compared to the previous quarter, reflecting the decline in production and export indices. It is also due to the sharp decline in the wage index and the decrease in domestic sales, especially for food industries and ready-made garments, due to the decline in demand with the end of Ramadan and the holidays and the approaching end of the school year.}
+\ECESContent{exec_manufacturing}{[TODO: Enter analysis of the manufacturing sector performance for \CurrentQuarterText.]}
 
 \vspace{0.8em}
 
-\ECESContent{exec_best_sector}{The telecommunications sector registered the best performance, exceeding the neutral level by 15 points, but one point lower than the previous quarter and 15 points better than the corresponding quarter. This is attributed to the recovery of all sector indices, particularly exports, with expanded access to the African markets and decline in intermediate input prices compared to the previous quarter.}
+\ECESContent{exec_best_sector}{[TODO: Enter analysis of the best-performing sector for \CurrentQuarterText.]}
 }
 
 \clearpage
@@ -172,22 +167,20 @@ Executive Summary
 \noindent
 {\fontsize{10}{13}\selectfont \textbf{\color{textgreen} \underline{Challenges and priorities from the business community's perspective:}}} \vspace{0.8em}
 
-% Bold Intro Paragraph
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{exec_challenges_headline}{The recurring increases in energy and water tariffs continue to top the list of constraints facing all firms during the quarter under study.}}} \vspace{0.8em}
+{\fontsize{10}{13}\selectfont \textbf{\ECESContent{exec_challenges_headline}{[TODO: Enter the single top constraint facing all firms during \CurrentQuarterText.]}}} \vspace{0.8em}
 
-% Main Text Body
 \noindent
 {\fontsize{10}{13}\selectfont
-\ECESContent{exec_challenges_body}{Higher energy and water tariffs top the list of constraints facing all businesses, particularly in the manufacturing and tourism sectors. The result is an increase in production costs, particularly in energy- and water-intensive activities, and productive activities in general, representing an additional burden on firms. Challenges related to rising inflation ranked second, followed by difficulties in dealing with government agencies, which ranked third. The business community suffers from slow procedures and red tape, along with the presence of numerous judicial police officers in most government agencies, opening the door to corruption and unofficial payments. In fourth place came unclear future economic policy directions and lack of disclosure of the State’s future economic intentions. These constraints hinder firms’ ability to formulate future plans. Furthermore, there is a lack of a long-term vision, especially regarding investment and debt.}
+\ECESContent{exec_challenges_body}{[TODO: Enter ranked list of top 4–5 constraints facing businesses during \CurrentQuarterText, with brief explanations.]}
 
 \vspace{0.8em}
 
-\ECESContent{exec_sme_comparison}{Although energy and water tariffs and high inflation top the list of constraints facing all businesses, small and medium-sized enterprises (SMEs) specifically face a greater number of challenges than large firms.}
+\ECESContent{exec_sme_comparison}{[TODO: Describe how SMEs' constraint profile compares to large firms during \CurrentQuarterText.]}
 
 \vspace{0.8em}
 
-\ECESContent{exec_priorities}{The key priorities to focus on from a business perspective are: reconsidering energy and water tariffs, controlling inflation, disclosing future economic policy directions, maintaining efforts to resolve tax system problems, along with facilitating government procedures. Finding solutions to address inflation, revisiting energy and water prices, and disclosure of future economic policy directions topped the list of priorities for \textbf{all firms}. \textbf{Meanwhile}, the remaining priorities varied, with \textbf{economic policy consistency} coming at fourth place \textbf{for large firms}, while improving the \textbf{tax system} came at fourth place for \textbf{SMEs}.}
+\ECESContent{exec_priorities}{[TODO: List the key business environment improvement priorities identified by firms for \CurrentQuarterText.]}
 }
 
 \vspace{2em}
@@ -200,9 +193,9 @@ Executive Summary
 {\fontsize{10}{13}\selectfont \textbf{\color{black} \underline{Main Macroeconomic Developments: *}}} \vspace{0.5em}
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \textbf{Globally:} \ECESContent{exec_macro_global}{Global growth forecasts continue to decline, with low and uneven growth and multiple challenges facing the global economy.}
-    
-    \item \fontsize{10}{13}\selectfont \textbf{Locally:} \ECESContent{exec_macro_local}{There are signs of macroeconomic stability during the first half of 2025, due to improved tourism and Ras El-Hekma investments, a narrowing foreign exchange gap, and a decline in inflation. Structural reforms need to be completed to maximize benefits from macroeconomic stability and enhance the resilience of the Egyptian economy.}
+    \item \fontsize{10}{13}\selectfont \textbf{Globally:} \ECESContent{exec_macro_global}{[TODO: Enter 1–2 sentence summary of global economic conditions relevant to \CurrentQuarterText.]}
+
+    \item \fontsize{10}{13}\selectfont \textbf{Locally:} \ECESContent{exec_macro_local}{[TODO: Enter 1–2 sentence summary of Egyptian macroeconomic conditions during \CurrentQuarterText.]}
 \end{itemize}
 
 % ---------------------------------------------------------
@@ -211,7 +204,7 @@ Executive Summary
 \vfill
 
 \noindent
-{\fontsize{9}{11}\selectfont 
+{\fontsize{9}{11}\selectfont
 * For more details on the latest global, regional and local financial developments, refer to the monthly financial report (\textbf{\color{eceslink} \underline{Financial Markets Snapshot}}).
 }
 

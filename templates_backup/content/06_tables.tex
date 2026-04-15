@@ -5,42 +5,31 @@
 % 1. Geometry
 \newgeometry{left=2cm, right=2cm, top=3cm, bottom=2.5cm}
 
-% ---------------------------------------------------------
-% PAGE TITLE
-% ---------------------------------------------------------
 \noindent
-{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle} Tables Index}}
+{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle} \ECESContent{title_tables_index}{Tables Index}}}
 
 \vspace{0.5em}
 \label{sec:appendix}
-% ---------------------------------------------------------
-% TABLE A1 (t1.png)
-% ---------------------------------------------------------
+
+%% TODO: Upload t1.png — Table A1 (Business Performance Index by firm size) via Chart Manager
 \begin{figure}[h!]
     \centering
-    % Constrain height to 38% of text height to ensure two tables fit
     \includegraphics[width=\linewidth, height=0.38\textheight, keepaspectratio]{t1.png}
 \end{figure}
 
 \vspace{0.2em}
 
-% ---------------------------------------------------------
-% TABLE A2 (t2.png)
-% ---------------------------------------------------------
+%% TODO: Upload t2.png — Table A2 (Business Performance Index by sector) via Chart Manager
 \begin{figure}[h!]
     \centering
-    % Constrain height to 38% of text height
     \includegraphics[width=\linewidth, height=0.38\textheight, keepaspectratio]{t2.png}
 \end{figure}
 
-% ---------------------------------------------------------
-% FOOTNOTES
-% ---------------------------------------------------------
 \vfill
 \noindent
 {\fontsize{7}{9}\selectfont
 1 Numbers represent percent of total responses. Higher, same, and lower may not add up to 100 due to rounding.\\
-2 Equal to the simple average of the variables’ indices. The index’s method of calculation is provided in the appendix.
+2 Equal to the simple average of the variables' indices. The index's method of calculation is provided in the appendix.
 }
 
 \clearpage
@@ -49,56 +38,32 @@
 % PAGE 29: TABLES APPENDIX (Tables A3 & A4)
 % =========================================================
 
-% 1. Geometry (Persist from previous page)
-
-% 2. Background Image & Page Number
-\begin{tikzpicture}[remember picture, overlay]
-    % A. Main Background
-    \node[anchor=north west, inner sep=0pt] at (current page.north west) {
-        \includegraphics[width=\paperwidth, height=\paperheight]{con_bg.png}
-    };
-    % B. Page Number (Dynamic)
-    \node[anchor=south east] at ([xshift=-1cm, yshift=1cm]current page.south east) {
-        \fontsize{14}{14}\selectfont \textbf{\thepage}
-    };
-\end{tikzpicture}
-
-% ---------------------------------------------------------
-% PAGE TITLE
-% ---------------------------------------------------------
 \noindent
-{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle} Tables Appendix}}
+{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle}
+\ECESContent{title_tables_appendix}{Tables Appendix}
+}}
 
-\vspace{1em}
+\vspace{0.5em}
 
-% ---------------------------------------------------------
-% TABLE A3 (t3.png)
-% ---------------------------------------------------------
+%% TODO: Upload t3.png — Table A3 (Constraints ranking) via Chart Manager
 \begin{figure}[h!]
     \centering
-    % Table A3 - Standard width
-    \includegraphics[width=\linewidth, height=0.35\textheight, keepaspectratio]{t3.png}
+    \includegraphics[width=\linewidth, height=0.38\textheight, keepaspectratio]{t3.png}
 \end{figure}
 
-\vspace{1em}
+\vspace{0.2em}
 
-% ---------------------------------------------------------
-% TABLE A4 (t4.png)
-% ---------------------------------------------------------
+%% TODO: Upload t4.png — Table A4 (Priorities ranking) via Chart Manager
 \begin{figure}[h!]
     \centering
-    % Table A4 - Standard width
-    \includegraphics[width=\linewidth, height=0.35\textheight, keepaspectratio]{t4.png}
+    \includegraphics[width=\linewidth, height=0.38\textheight, keepaspectratio]{t4.png}
 \end{figure}
 
-% ---------------------------------------------------------
-% FOOTNOTES
-% ---------------------------------------------------------
 \vfill
 \noindent
 {\fontsize{7}{9}\selectfont
-1 Numbers represent percentage of total responses. Higher, same, and lower may not add up to 100 due to rounding.\\
-2 Equal to the simple average of the variables’ indices. The index’s method of calculation is provided in the appendix.
+1 Numbers represent percent of total responses. Higher, same, and lower may not add up to 100 due to rounding.\\
+2 Equal to the simple average of the variables' indices. The index's method of calculation is provided in the appendix.
 }
 
 \clearpage

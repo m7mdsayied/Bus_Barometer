@@ -1,27 +1,31 @@
 % =========================================================
-% PAGE 2: EXECUTIVE SUMMARY — ARABIC (START)
+% PAGE 2: EXECUTIVE SUMMARY (START)
 % =========================================================
 
 % 1. Adjust Geometry for RTL Sidebar
+% Right margin = 5.5cm to clear the graphical sidebar cleanly
 \newgeometry{right=4.5cm, left=2cm, top=1cm, bottom=2.5cm}
+
+
 
 % ---------------------------------------------------------
 % TITLE & INTRO
 % ---------------------------------------------------------
 \noindent
-{\fontsize{24}{28}\selectfont \textbf{\color{ecestitle} ملخص تنفيذي}}
+{\fontsize{24}{28}\selectfont \textbf{\color{ecestitle} \ECESContent{title_exec_summary_ar}{ملخص تنفيذي}}}
 \vspace{0.8em}
 \label{sec:ar_exec_summary}
 
 \noindent
 {\fontsize{11}{15}\selectfont \color{textdark}
-\ECESContent{exec_intro_ar}{[TODO: أدخل الفقرة التمهيدية التي تصف نطاق مسح مقياس الأعمال للعدد \IssueNumber. اذكر الربع \CurrentQuarterText، والربع القادم \NextQuarterText، والربع السابق \PreviousQuarterText، والربع المناظر \CorrespQuarterText.]}
+\ECESContent{exec_intro_ar}{[أدخل: الفقرة التمهيدية للملخص التنفيذي — وصف عينة الاستبيان والمتغيرات المقيّمة خلال الربع (\CurrentQuarterText) وتوقعاته للربع (\NextQuarterText).]}
 }
 
 % ---------------------------------------------------------
 % SUBHEADER AND ARROW LEGEND
 % ---------------------------------------------------------
 \noindent
+% Aligned Vertically to Center ([c]) so text matches arrow height
 \begin{minipage}[c]{0.55\textwidth}
     \raggedright
     \fontsize{12}{14}\selectfont
@@ -41,153 +45,166 @@
 \noindent
 \begin{tikzpicture}
     \setRTL
+    % Modern Box: Light Teal Fill, Rounded Corners, Dark Teal Border
     \node[
         draw=ecesteal,
         line width=1.5pt,
-        fill=ecesteal!5,
-        rounded corners=8pt,
+        fill=ecesteal!5,        % 5% opacity background
+        rounded corners=8pt,    % Soft edges
         inner sep=12pt,
         align=justify,
-        text width=12cm
+        text width=12cm         % Fits inside margins
     ] (box) {
         \fontsize{11}{15}\selectfont \color{textdark}
 
-        \ECESContent{exec_box_overall_ar}{[TODO: أدخل نقطتين أو ثلاثاً عن مؤشر أداء الأعمال الإجمالي ومؤشر التوقعات لربع \CurrentQuarterText.]}
+        % Overall
+        \ECESContent{exec_box_overall_ar}{[أدخل: النتائج الرئيسية — مؤشر الأداء الإجمالي ومؤشر التوقعات مقارنة بالمستوى المحايد.]}
 
         \vspace{0.8em}
 
+        % Size (Blue)
         \textbf{\color{textblue} \underline{وفقا للحجم:}} \\
-        \ECESContent{exec_box_size_ar}{[TODO: أدخل نقطة أو نقطتين عن أداء المؤشر وفقاً لحجم الشركات (كبيرة / ص و م) لربع \CurrentQuarterText.]}
+        \ECESContent{exec_box_size_ar}{[أدخل: ملخص الأداء حسب حجم الشركات (كبيرة / صغيرة ومتوسطة).]}
 
+
+        % Sector (Purple)
         \textbf{\color{textpurple} \underline{وفقا للقطاع:}} \\
-         \ECESContent{exec_box_sector_ar}{[TODO: أدخل نقطة أو نقطتين عن أداء المؤشر وفقاً للقطاعات لربع \CurrentQuarterText.]}
+         \ECESContent{exec_box_sector_ar}{[أدخل: ملخص أداء القطاعات — أعلى أداء وأدنى أداء خلال الربع.]}
 
+
+        % Challenges (Green)
         \textbf{\color{textgreen} \underline{التحديات:}} \\
-        \ECESContent{exec_box_challenges_ar}{[TODO: أدخل نقطة أو نقطتين عن أبرز معوقات الأعمال لربع \CurrentQuarterText.]}
+        \ECESContent{exec_box_challenges_ar}{[أدخل: أبرز المعوقات التي واجهت الشركات خلال الربع وفقاً لنتائج الاستبيان.]}
     };
 \end{tikzpicture}
 
-\vspace{0.8em}
 
 % ---------------------------------------------------------
-% BPI ANALYSIS TEXT AND CHART
+% ANALYSIS & CHART 1
 % ---------------------------------------------------------
-%% TODO: Upload ch1.png (Arabic) — مؤشر أداء الأعمال الإجمالي via Chart Manager
 \noindent
-\begin{minipage}[t]{0.55\textwidth}
-    \vspace{0pt}
-    {\fontsize{11}{15}\selectfont \color{textdark}
-    \ECESContent{exec_bpi_analysis_ar}{[TODO: أدخل تحليل مؤشر أداء الأعمال لربع \CurrentQuarterText مع المقارنة بالربع السابق \PreviousQuarterText والربع المناظر \CorrespQuarterText.]}
-    }
+\begin{minipage}[t]{0.58\textwidth}
+    \vspace{0pt} % Force alignment to top
+    \fontsize{11}{15}\selectfont
+    \ECESContent{exec_bpi_analysis_ar}{[أدخل: تحليل مؤشر أداء الأعمال للربع (\CurrentQuarterText) — القيمة مقارنة بالمستوى المحايد والربع السابق مع الأسباب.]}
+    \vspace{0.8em}
+
+    \ECESContent{exec_expectations_ar}{[أدخل: تحليل مؤشر توقعات الأداء للربع (\NextQuarterText) — القيمة مقارنة بالمستوى المحايد.]}
 \end{minipage}%
 \hfill
-\begin{minipage}[t]{0.40\textwidth}
+\begin{minipage}[t]{0.38\textwidth}
     \vspace{0pt}
     \centering
-    \includegraphics[width=\linewidth, keepaspectratio]{ch1.png}
+    % Frame around chart for polish (optional)
+    \setlength{\fboxsep}{0pt}
+    \includegraphics[width=\linewidth]{ch1.png}
 \end{minipage}
-
-\vspace{0.8em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \color{textdark}
-\ECESContent{exec_expectations_ar}{[TODO: أدخل تحليل مؤشر توقعات الأداء للربع القادم \NextQuarterText.]}
-}
 
 \clearpage
 
 % =========================================================
-% PAGE 3: DETAILED ANALYSIS (SIZE & SECTOR) — ARABIC
+% PAGE 3: DETAILED ANALYSIS
 % =========================================================
 
-%% TODO: Upload ch2.png (Arabic) — مؤشر الأداء وفقاً للحجم via Chart Manager
+% ---------------------------------------------------------
+% SECTION: BY SIZE
+% ---------------------------------------------------------
 \noindent
-\begin{minipage}[t]{0.55\textwidth}
+\begin{minipage}[t]{0.58\textwidth}
     \vspace{0pt}
-    {\fontsize{11}{15}\selectfont \textbf{\color{textblue} \underline{وفقا للحجم:}}}
-    \vspace{0.6em}
+    {\fontsize{13}{16}\selectfont \textbf{\color{textblue} \underline{وفقا للحجم:}}} \vspace{0.6em}
 
-    {\fontsize{11}{15}\selectfont \color{textdark}
-    \ECESContent{exec_size_detail_ar}{[TODO: أدخل تحليل تفصيلي لأداء المؤشر وفقاً لحجم الشركات لربع \CurrentQuarterText.]}
-    }
+    \fontsize{11}{15}\selectfont
+    \ECESContent{exec_size_detail_ar}{[أدخل: تفاصيل الأداء حسب حجم الشركات — مقارنة الشركات الكبيرة والصغيرة والمتوسطة بالمستوى المحايد والربع السابق والمناظر.]}
 \end{minipage}%
 \hfill
-\begin{minipage}[t]{0.40\textwidth}
+\begin{minipage}[t]{0.38\textwidth}
     \vspace{0pt}
     \centering
-    \includegraphics[width=\linewidth, keepaspectratio]{ch2.png}
+    \includegraphics[width=\linewidth]{ch2.png}
 \end{minipage}
-
-\vspace{1.5em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \textbf{\color{textpurple} \underline{وفقا للقطاع:}}} \vspace{0.6em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \color{textdark}
-\ECESContent{exec_sector_summary_ar}{[TODO: أدخل ملخص أداء المؤشر وفقاً للقطاعات لربع \CurrentQuarterText. اذكر أفضل وأسوأ القطاعات أداءً.]}
-}
-
-\vspace{1.2em}
-
-%% TODO: Upload ch3.png (Arabic) — مؤشر الأداء وفقاً للقطاعات via Chart Manager
-\noindent
-\includegraphics[width=\linewidth, keepaspectratio]{ch3.png}
-
-\vspace{1.2em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \color{textdark}
-\ECESContent{exec_manufacturing_ar}{[TODO: أدخل تحليل أداء قطاع الصناعات التحويلية لربع \CurrentQuarterText.]}
-
-\vspace{0.8em}
-
-\ECESContent{exec_best_sector_ar}{[TODO: أدخل تحليل أفضل قطاع أداءً لربع \CurrentQuarterText.]}
-}
-
-\clearpage
-
-% =========================================================
-% PAGE 4: CHALLENGES & MACROECONOMIC DEVELOPMENTS — ARABIC
-% =========================================================
-
-\noindent
-{\fontsize{11}{15}\selectfont \textbf{\color{textgreen} \underline{التحديات والأولويات من منظور مجتمع الأعمال:}}} \vspace{0.8em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \textbf{\color{textdark}
-\ECESContent{exec_challenges_headline_ar}{[TODO: أدخل أبرز معوق واجه كافة الشركات خلال ربع \CurrentQuarterText.]}
-}} \vspace{0.8em}
-
-\noindent
-{\fontsize{11}{15}\selectfont \color{textdark}
-\ECESContent{exec_challenges_body_ar}{[TODO: أدخل قائمة بأبرز 4–5 معوقات تواجه الأعمال خلال \CurrentQuarterText مع شرح موجز لكل منها.]}
-
-\vspace{0.8em}
-
-\ECESContent{exec_sme_comparison_ar}{[TODO: أدخل المقارنة بين معوقات الشركات الصغيرة والمتوسطة والكبيرة خلال \CurrentQuarterText.]}
-
-\vspace{0.8em}
-
-\ECESContent{exec_priorities_ar}{[TODO: أدخل أبرز الأولويات لتحسين بيئة الأعمال من منظور العينة خلال \CurrentQuarterText.]}
-}
 
 \vspace{2em}
 
+% ---------------------------------------------------------
+% SECTION: BY SECTOR
+% ---------------------------------------------------------
 \noindent
-{\fontsize{11}{15}\selectfont \textbf{\color{black} \underline{أبرز التطورات الاقتصادية الكلية: *}}} \vspace{0.5em}
-
-\begin{itemize} \itemsep0.6em
-    \item \fontsize{11}{15}\selectfont \textbf{على الصعيد الدولي:} \ECESContent{exec_macro_global_ar}{[TODO: أدخل ملخصاً موجزاً للأوضاع الاقتصادية العالمية ذات الصلة بربع \CurrentQuarterText.]}
-
-    \item \fontsize{11}{15}\selectfont \textbf{على الصعيد المحلي:} \ECESContent{exec_macro_local_ar}{[TODO: أدخل ملخصاً موجزاً للأوضاع الاقتصادية الكلية في مصر خلال ربع \CurrentQuarterText.]}
-\end{itemize}
-
-\vfill
+{\fontsize{13}{16}\selectfont \textbf{\color{textpurple} \underline{وفقا للقطاع:}}} \vspace{0.6em}
 
 \noindent
-{\fontsize{9}{11}\selectfont
-* لمزيد من التفاصيل حول أحدث المستجدات المالية العالمية والإقليمية والمحلية، يُرجى الرجوع إلى التقرير المالي الشهري (\textbf{\color{eceslink} \underline{لقطة أسواق المال}}).
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_sector_summary_ar}{[أدخل: ملخص أداء القطاعات — أي القطاعات تجاوز المستوى المحايد وأيها دونه.]}
 }
 
+\vspace{1em}
+
+% Centered Chart
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\linewidth]{ch3.png}
+\end{figure}
+
+\vspace{0.5em}
+
+\noindent
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_manufacturing_ar}{[أدخل: تفاصيل أداء قطاع الصناعات التحويلية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+
+\vspace{0.8em}
+
+\ECESContent{exec_best_sector_ar}{[أدخل: تفاصيل القطاع صاحب أفضل أداء — القيمة مقارنة بالمستوى المحايد وأسباب التميز.]}
+}
+
+\clearpage
+
+% =========================================================
+% PAGE 4: CHALLENGES & MACRO
+% =========================================================
+
+% ---------------------------------------------------------
+% SECTION: CHALLENGES
+% ---------------------------------------------------------
+\noindent
+{\fontsize{13}{16}\selectfont \textbf{\color{textgreen} \underline{التحديات والأولويات من وجهة نظر مجتمع الأعمال:}}} \vspace{1em}
+
+\noindent
+{\fontsize{11}{15}\selectfont \textbf{\ECESContent{exec_challenges_headline_ar}{[أدخل: العنوان الرئيسي للمعوق الأول الذي يواجه الشركات خلال الربع.]}}} \vspace{0.8em}
+
+\noindent
+{\fontsize{11}{15}\selectfont
+\ECESContent{exec_challenges_body_ar}{[أدخل: تفاصيل أبرز المعوقات مرتبة حسب الأهمية لكافة الشركات.]}
+
+\vspace{0.8em}
+
+\ECESContent{exec_sme_comparison_ar}{[أدخل: مقارنة المعوقات بين الشركات الكبيرة والصغيرة والمتوسطة.]}
+}
+
+\vspace{1.5em}
+
+% Priorities Box (Simple Highlight)
+\noindent
+\begin{tikzpicture}
+    \setRTL
+    \node[draw=textgreen, fill=textgreen!5, rounded corners=5pt, inner sep=10pt, text width=12cm] {
+        \fontsize{11}{15}\selectfont
+        \textbf{أهم الأولويات:} \ECESContent{exec_priorities_ar}{[أدخل: قائمة أهم الأولويات لتحسين بيئة الأعمال من وجهة نظر شركات العينة.]}
+    };
+\end{tikzpicture}
+
+\vspace{2em}
+
+% ---------------------------------------------------------
+% SECTION: MACROECONOMIC
+% ---------------------------------------------------------
+\noindent
+{\fontsize{13}{16}\selectfont \textbf{\color{textdark} \underline{أهم التطورات الاقتصادية الكلية:}}} \vspace{0.8em}
+
+\begin{itemize}
+    \setlength\itemsep{0.8em}
+    \item \fontsize{11}{15}\selectfont \textbf{عالميا:} \ECESContent{exec_macro_global_ar}{[أدخل: أبرز التطورات الاقتصادية العالمية خلال الربع.]}
+    \item \fontsize{11}{15}\selectfont \textbf{محليا:} \ECESContent{exec_macro_local_ar}{[أدخل: أبرز التطورات الاقتصادية المحلية خلال الربع.]}
+\end{itemize}
+
+% Reset Geometry
 \restoregeometry
