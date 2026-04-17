@@ -4,7 +4,7 @@
 
 % 1. Adjust Geometry for RTL Sidebar
 % Right margin = 5.5cm to clear the graphical sidebar cleanly
-\newgeometry{right=4.5cm, left=2cm, top=1cm, bottom=2.5cm}
+\GeomExecSummary
 
 
 
@@ -12,12 +12,12 @@
 % TITLE & INTRO
 % ---------------------------------------------------------
 \noindent
-{\fontsize{24}{28}\selectfont \textbf{\color{ecestitle} \ECESContent{title_exec_summary_ar}{ملخص تنفيذي}}}
+{\FontPageTitle\textbf{\color{ecestitle} \ECESContent{title_exec_summary_ar}{ملخص تنفيذي}}}
 \vspace{0.8em}
 \label{sec:ar_exec_summary}
 
 \noindent
-{\fontsize{11}{15}\selectfont \color{textdark}
+{\FontBodyLg
 \ECESContent{exec_intro_ar}{[أدخل: الفقرة التمهيدية للملخص التنفيذي — وصف عينة الاستبيان والمتغيرات المقيّمة خلال الربع (\CurrentQuarterText) وتوقعاته للربع (\NextQuarterText).]}
 }
 
@@ -28,8 +28,8 @@
 % Aligned Vertically to Center ([c]) so text matches arrow height
 \begin{minipage}[c]{0.55\textwidth}
     \raggedright
-    \fontsize{12}{14}\selectfont
-    \textbf{\color{ecesteal} \underline{تقييم الأداء والتوقعات وفقا للمؤشر الإجمالي}}
+    \FontSubSection
+    \textbf{\color{ecestitle} \underline{\ECESContent{exec_subheading_overall_eval_ar}{تقييم الأداء والتوقعات وفقا للمؤشر الإجمالي}}}
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.40\textwidth}
@@ -45,17 +45,8 @@
 \noindent
 \begin{tikzpicture}
     \setRTL
-    % Modern Box: Light Teal Fill, Rounded Corners, Dark Teal Border
-    \node[
-        draw=ecesteal,
-        line width=1.5pt,
-        fill=ecesteal!5,        % 5% opacity background
-        rounded corners=8pt,    % Soft edges
-        inner sep=12pt,
-        align=justify,
-        text width=12cm         % Fits inside margins
-    ] (box) {
-        \fontsize{11}{15}\selectfont \color{textdark}
+    \node[ECEShighlight] (box) {
+        \FontBodyLg
 
         % Overall
         \ECESContent{exec_box_overall_ar}{[أدخل: النتائج الرئيسية — مؤشر الأداء الإجمالي ومؤشر التوقعات مقارنة بالمستوى المحايد.]}
@@ -63,17 +54,17 @@
         \vspace{0.8em}
 
         % Size (Blue)
-        \textbf{\color{textblue} \underline{وفقا للحجم:}} \\
+        \textbf{\color{textblue} \underline{\ECESContent{exec_box_label_size_ar}{وفقا للحجم:}}} \\
         \ECESContent{exec_box_size_ar}{[أدخل: ملخص الأداء حسب حجم الشركات (كبيرة / صغيرة ومتوسطة).]}
 
 
         % Sector (Purple)
-        \textbf{\color{textpurple} \underline{وفقا للقطاع:}} \\
+        \textbf{\color{textpurple} \underline{\ECESContent{exec_box_label_sector_ar}{وفقا للقطاع:}}} \\
          \ECESContent{exec_box_sector_ar}{[أدخل: ملخص أداء القطاعات — أعلى أداء وأدنى أداء خلال الربع.]}
 
 
         % Challenges (Green)
-        \textbf{\color{textgreen} \underline{التحديات:}} \\
+        \textbf{\color{textgreen} \underline{\ECESContent{exec_box_label_challenges_ar}{التحديات:}}} \\
         \ECESContent{exec_box_challenges_ar}{[أدخل: أبرز المعوقات التي واجهت الشركات خلال الربع وفقاً لنتائج الاستبيان.]}
     };
 \end{tikzpicture}
@@ -85,7 +76,7 @@
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
     \vspace{0pt} % Force alignment to top
-    \fontsize{11}{15}\selectfont
+    \FontBodyLg
     \ECESContent{exec_bpi_analysis_ar}{[أدخل: تحليل مؤشر أداء الأعمال للربع (\CurrentQuarterText) — القيمة مقارنة بالمستوى المحايد والربع السابق مع الأسباب.]}
     \vspace{0.8em}
 
@@ -112,9 +103,9 @@
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
     \vspace{0pt}
-    {\fontsize{13}{16}\selectfont \textbf{\color{textblue} \underline{وفقا للحجم:}}} \vspace{0.6em}
+    \ECESPageSectionHead{textblue}{\ECESContent{exec_heading_size_ar}{وفقا للحجم:}} \vspace{0.6em}
 
-    \fontsize{11}{15}\selectfont
+    \FontBodyLg
     \ECESContent{exec_size_detail_ar}{[أدخل: تفاصيل الأداء حسب حجم الشركات — مقارنة الشركات الكبيرة والصغيرة والمتوسطة بالمستوى المحايد والربع السابق والمناظر.]}
 \end{minipage}%
 \hfill
@@ -130,10 +121,10 @@
 % SECTION: BY SECTOR
 % ---------------------------------------------------------
 \noindent
-{\fontsize{13}{16}\selectfont \textbf{\color{textpurple} \underline{وفقا للقطاع:}}} \vspace{0.6em}
+\ECESPageSectionHead{textpurple}{\ECESContent{exec_heading_sector_ar}{وفقا للقطاع:}} \vspace{0.6em}
 
 \noindent
-{\fontsize{11}{15}\selectfont
+{\FontBodyLg
 \ECESContent{exec_sector_summary_ar}{[أدخل: ملخص أداء القطاعات — أي القطاعات تجاوز المستوى المحايد وأيها دونه.]}
 }
 
@@ -148,7 +139,7 @@
 \vspace{0.5em}
 
 \noindent
-{\fontsize{11}{15}\selectfont
+{\FontBodyLg
 \ECESContent{exec_manufacturing_ar}{[أدخل: تفاصيل أداء قطاع الصناعات التحويلية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
 \vspace{0.8em}
@@ -166,13 +157,13 @@
 % SECTION: CHALLENGES
 % ---------------------------------------------------------
 \noindent
-{\fontsize{13}{16}\selectfont \textbf{\color{textgreen} \underline{التحديات والأولويات من وجهة نظر مجتمع الأعمال:}}} \vspace{1em}
+\ECESPageSectionHead{textgreen}{\ECESContent{exec_heading_challenges_ar}{التحديات والأولويات من وجهة نظر مجتمع الأعمال:}} \vspace{1em}
 
 \noindent
-{\fontsize{11}{15}\selectfont \textbf{\ECESContent{exec_challenges_headline_ar}{[أدخل: العنوان الرئيسي للمعوق الأول الذي يواجه الشركات خلال الربع.]}}} \vspace{0.8em}
+{\FontBodyLg\textbf{\ECESContent{exec_challenges_headline_ar}{[أدخل: العنوان الرئيسي للمعوق الأول الذي يواجه الشركات خلال الربع.]}}} \vspace{0.8em}
 
 \noindent
-{\fontsize{11}{15}\selectfont
+{\FontBodyLg
 \ECESContent{exec_challenges_body_ar}{[أدخل: تفاصيل أبرز المعوقات مرتبة حسب الأهمية لكافة الشركات.]}
 
 \vspace{0.8em}
@@ -186,9 +177,9 @@
 \noindent
 \begin{tikzpicture}
     \setRTL
-    \node[draw=textgreen, fill=textgreen!5, rounded corners=5pt, inner sep=10pt, text width=12cm] {
-        \fontsize{11}{15}\selectfont
-        \textbf{أهم الأولويات:} \ECESContent{exec_priorities_ar}{[أدخل: قائمة أهم الأولويات لتحسين بيئة الأعمال من وجهة نظر شركات العينة.]}
+    \node[ECESattention] {
+        \FontBodyLg
+        \textbf{\ECESContent{exec_priorities_label_ar}{أهم الأولويات:}} \ECESContent{exec_priorities_ar}{[أدخل: قائمة أهم الأولويات لتحسين بيئة الأعمال من وجهة نظر شركات العينة.]}
     };
 \end{tikzpicture}
 
@@ -198,12 +189,12 @@
 % SECTION: MACROECONOMIC
 % ---------------------------------------------------------
 \noindent
-{\fontsize{13}{16}\selectfont \textbf{\color{textdark} \underline{أهم التطورات الاقتصادية الكلية:}}} \vspace{0.8em}
+\ECESPageSectionHead{ecestitle}{\ECESContent{exec_heading_macro_ar}{أهم التطورات الاقتصادية الكلية:}} \vspace{0.8em}
 
 \begin{itemize}
     \setlength\itemsep{0.8em}
-    \item \fontsize{11}{15}\selectfont \textbf{عالميا:} \ECESContent{exec_macro_global_ar}{[أدخل: أبرز التطورات الاقتصادية العالمية خلال الربع.]}
-    \item \fontsize{11}{15}\selectfont \textbf{محليا:} \ECESContent{exec_macro_local_ar}{[أدخل: أبرز التطورات الاقتصادية المحلية خلال الربع.]}
+    \item \FontBodyLg\textbf{\ECESContent{exec_macro_global_label_ar}{عالميا:}} \ECESContent{exec_macro_global_ar}{[أدخل: أبرز التطورات الاقتصادية العالمية خلال الربع.]}
+    \item \FontBodyLg\textbf{\ECESContent{exec_macro_local_label_ar}{محليا:}} \ECESContent{exec_macro_local_ar}{[أدخل: أبرز التطورات الاقتصادية المحلية خلال الربع.]}
 \end{itemize}
 
 % Reset Geometry

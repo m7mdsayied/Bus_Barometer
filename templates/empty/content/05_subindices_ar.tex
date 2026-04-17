@@ -4,20 +4,20 @@
 
 % 1. Geometry
 % Standard margins
-\newgeometry{left=2cm, right=2cm, top=1cm, bottom=2.5cm}
+\GeomTightTop
 
 % ---------------------------------------------------------
 % SECTION TITLE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{18}{22}\selectfont \textbf{\color{ecestitle} \ECESContent{title_section_iii_ar}{ثالثاً: تقييم الأداء والتوقعات وفقاً للمؤشرات الفرعية}}}
+{\FontReportSection\textbf{\color{ecestitle} \ECESContent{title_section_iii_ar}{ثالثاً: تقييم الأداء والتوقعات وفقاً للمؤشرات الفرعية}}}
 \vspace{1em}
 \label{sec:ar_eval_sub}
 % ---------------------------------------------------------
 % SUBSECTION 3.1
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{\color{ecestitle} \ECESContent{title_subindices_31_ar}{3.1 تقييم الأداء}}}
+{\FontSubSection\textbf{\color{ecestitle} \ECESContent{title_subindices_31_ar}{3.1 تقييم الأداء}}}
 
 \vspace{0.8em}
 
@@ -25,7 +25,7 @@
 % BODY TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{subindices_perf_p1_ar}{[أدخل: أداء مؤشرات الإنتاج والمبيعات المحلية واستغلال الطاقة الإنتاجية والصادرات والمخزون للشركات الكبيرة خلال الربع — القيم مقارنة بالمستوى المحايد والربعين السابق والمناظر.]}
 
 \vspace{0.8em}
@@ -41,7 +41,7 @@
 \begin{figure}[h!]
     \centering
     % Contains the Production and Sales Indices chart
-    \includegraphics[width=\linewidth]{ch20.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch20.png}
 \end{figure}
 
 % ---------------------------------------------------------
@@ -49,7 +49,7 @@
 % ---------------------------------------------------------
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg23_ar}{المصدر: نتائج الاستبيان.\\
 * تم عكس مؤشر المخزون السلعي ليعكس الأثر السلبي الناتج عن ارتفاع المخزون السلعي على الشركات. لذلك فكلما كان المؤشر السلعي مرتفعا كان المخزون السلعي منخفض والعكس صحيح.}
 }
@@ -66,12 +66,12 @@
 % SECTION TITLE: CONTINUATION FROM PAGE 23
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{subindices_prices_wages_intro_ar}{[أدخل: العنوان الرئيسي البارز — ملخص أداء مؤشري أسعار المنتجات النهائية والأجور مقارنة بالمستوى المحايد.]}}}
+{\FontBody \textbf{\ECESContent{subindices_prices_wages_intro_ar}{[أدخل: العنوان الرئيسي البارز — ملخص أداء مؤشري أسعار المنتجات النهائية والأجور مقارنة بالمستوى المحايد.]}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{subindices_prices_wages_p1_ar}{[أدخل: تحليل مؤشر أسعار المنتجات النهائية ومؤشر الأجور لكافة الشركات خلال الربع — القيم مقارنة بالمستوى المحايد والربع السابق (الشكل 3-2).]}
 }
 
@@ -83,12 +83,12 @@
 \begin{figure}[h!]
     \centering
     % Price and Production Cost Indices
-    \includegraphics[width=\linewidth]{ch21.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch21.png}
 \end{figure}
 
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg24_1_ar}{المصدر: نتائج الاستبيان.\\
 * تم عكس مؤشر أسعار المدخلات ليعكس الأثر السلبي الناتج عن ارتفاع الأسعار على المؤشر الإجمالي. لذلك فكلما كان المؤشر منخفضا كان الارتفاع السعري أكبر والعكس صحيح.}
 }
@@ -99,12 +99,12 @@
 % SECTION 2: INVESTMENT AND EMPLOYMENT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{13}\selectfont \textbf{\ECESContent{subindices_inv_emp_intro_ar}{[أدخل: العنوان الرئيسي البارز — ملخص أداء مؤشري الاستثمار والتوظيف مقارنة بالمستوى المحايد.]}}}
+{\FontSubSection\textbf{\ECESContent{subindices_inv_emp_intro_ar}{[أدخل: العنوان الرئيسي البارز — ملخص أداء مؤشري الاستثمار والتوظيف مقارنة بالمستوى المحايد.]}}}
 
 \vspace{0.6em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{subindices_inv_emp_large_ar}{[أدخل: أداء مؤشري الاستثمار والتوظيف للشركات الكبيرة خلال الربع — القيم مقارنة بالمستوى المحايد والربعين السابق والمناظر.]}
 
 \vspace{0.6em}
@@ -120,12 +120,12 @@
 \begin{figure}[h!]
     \centering
     % Investment and Employment Indices
-    \includegraphics[width=\linewidth]{ch22.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch22.png}
 \end{figure}
 
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg24_2_ar}{المصدر: نتائج الاستبيان.}
 }
 
@@ -142,7 +142,7 @@
 % SECTION HEADER
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{\color{ecestitle} \ECESContent{title_subindices_32_ar}{3.2 توقعات الأداء}}}
+{\FontSubSection\textbf{\color{ecestitle} \ECESContent{title_subindices_32_ar}{3.2 توقعات الأداء}}}
 
 \vspace{0.8em}
 
@@ -150,7 +150,7 @@
 % INTRO TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \textbf{\ECESContent{subindices_exp_intro_ar}{[أدخل: العنوان الرئيسي البارز — ملخص توقعات الأداء لكافة الشركات خلال الربع القادم مقارنة بالمستوى المحايد.]}}}
 
 \vspace{0.8em}
@@ -170,7 +170,7 @@
 \begin{figure}[h!]
     \centering
     % Production and Sales Indices by Firm Size - Outlook
-    \includegraphics[width=\linewidth]{ch23.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch23.png}
 \end{figure}
 
 % ---------------------------------------------------------
@@ -178,7 +178,7 @@
 % ---------------------------------------------------------
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg25_ar}{المصدر: نتائج الاستبيان.\\
 * تم عكس مؤشر المخزون السلعي ليعكس الأثر السلبي الناتج عن ارتفاع المخزون السلعي على الشركات. لذلك فكلما كان المؤشر منخفضا كان المخزون السلعي مرتفعا والعكس صحيح.}
 }
@@ -189,12 +189,12 @@
 % BOTTOM TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{subindices_exp_prices_wages_intro_ar}{[أدخل: العنوان الرئيسي البارز — توقعات مؤشري أسعار المنتجات النهائية والأجور مقارنة بالمستوى المحايد.]}}}
+{\FontBody \textbf{\ECESContent{subindices_exp_prices_wages_intro_ar}{[أدخل: العنوان الرئيسي البارز — توقعات مؤشري أسعار المنتجات النهائية والأجور مقارنة بالمستوى المحايد.]}}}
 
 \vspace{0.8em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{subindices_exp_prices_p1_ar}{[أدخل: تحليل توقعات مؤشر أسعار المنتجات النهائية للشركات الكبيرة — مقارنة بالربع السابق والمناظر ومؤشر أسعار المدخلات.]}
 
 \vspace{0.8em}
@@ -215,7 +215,7 @@
 \begin{figure}[h!]
     \centering
     % Prices and Production Cost Indices by Firm Size - Outlook
-    \includegraphics[width=\linewidth]{ch24.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch24.png}
 \end{figure}
 
 % ---------------------------------------------------------
@@ -223,7 +223,7 @@
 % ---------------------------------------------------------
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg26_1_ar}{المصدر: نتائج الاستبيان.\\
 * تم عكس مؤشر أسعار المدخلات ليعكس الأثر السلبي الناتج عن ارتفاع الأسعار على المؤشر الإجمالي. لذلك فكلما كان المؤشر منخفضا كان الارتفاع السعري أكبر والعكس صحيح.}
 }
@@ -234,12 +234,12 @@
 % MIDDLE SECTION: INVESTMENT AND EMPLOYMENT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{subindices_exp_inv_emp_intro_ar}{[أدخل: العنوان الرئيسي البارز — توقعات مؤشري الاستثمار والتوظيف مقارنة بالمستوى المحايد.]}}}
+{\FontBody \textbf{\ECESContent{subindices_exp_inv_emp_intro_ar}{[أدخل: العنوان الرئيسي البارز — توقعات مؤشري الاستثمار والتوظيف مقارنة بالمستوى المحايد.]}}}
 
 \vspace{0.8em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{subindices_exp_inv_emp_p1_ar}{[أدخل: تحليل توقعات مؤشري الاستثمار والتوظيف لكافة الشركات خلال الربع القادم — مقارنة بالمستوى المحايد والربعين السابق والمناظر (الشكل 3-6).]}
 }
 
@@ -251,7 +251,7 @@
 \begin{figure}[h!]
     \centering
     % Investment and Employment Indices by Firm Size - Outlook
-    \includegraphics[width=\linewidth]{ch25.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch25.png}
 \end{figure}
 
 % ---------------------------------------------------------
@@ -259,8 +259,9 @@
 % ---------------------------------------------------------
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{subindices_source_pg26_2_ar}{المصدر: نتائج الاستبيان.}
 }
 
+\restoregeometry
 \clearpage

@@ -3,13 +3,13 @@
 % =========================================================
 
 % 1. Adjust Geometry
-\newgeometry{left=5cm, right=1.5cm, top=1cm, bottom=2cm}
+\GeomExecSummary
 
 % ---------------------------------------------------------
 % TITLE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{22}{26}\selectfont \textbf{\color{ecestitle}
+{\FontPageTitle\textbf{\color{ecestitle}
 \ECESContent{title_exec_summary}{Executive Summary}
 }} \par\vspace{0.4em}
 \label{sec:exec_summary}
@@ -17,7 +17,7 @@
 % INTRO PARAGRAPH
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \color{black}
+{\FontBody
 \ECESContent{exec_intro}{[TODO: Enter the introductory paragraph describing the scope of the Business Barometer survey for Issue \IssueNumber. Mention the quarter \CurrentQuarterText, the next quarter \NextQuarterText, the previous quarter \PreviousQuarterText, and the corresponding quarter \CorrespQuarterText.]}
 } \par\vspace{0.8em}
 
@@ -26,9 +26,9 @@
 % ---------------------------------------------------------
 \noindent
 \begin{minipage}[c]{0.62\textwidth}
-    {\fontsize{11}{14}\selectfont
-    \textbf{\textit{\underline{Evaluating performance and exploring}}} \\[0.2em]
-    \textbf{\textit{\underline{the outlook based on the overall index}}}
+    {\FontSubSection
+    \textbf{\textit{\underline{\ECESContent{exec_subheading_line1}{Evaluating performance and exploring}}}} \\[0.2em]
+    \textbf{\textit{\underline{\ECESContent{exec_subheading_line2}{the outlook based on the overall index}}}}
     }
 \end{minipage}%
 \hfill
@@ -44,25 +44,25 @@
 % ---------------------------------------------------------
 \noindent
 \begin{tikzpicture}
-    \node[draw=black, line width=0.8pt, inner sep=8pt, align=justify, text width=\dimexpr\textwidth-18pt\relax] (box) {
-        \fontsize{10}{13}\selectfont
+    \node[ECEShighlight] (box) {
+        \FontBodyLg
 
         \ECESContent{exec_box_overall}{[TODO: Enter 1-2 bullet points on overall Business Performance Index and Expectations Index for \CurrentQuarterText.]}
 
         \vspace{0.3em}
-        \textbf{\color{textblue} \underline{According to size:}} \\
+        \textbf{\color{textblue} \underline{\ECESContent{exec_box_label_size}{According to size:}}} \\
         {\color{textblue}
         \ECESContent{exec_box_size}{[TODO: Enter 1-2 bullet points on BPI performance by firm size (large vs. SMEs) for \CurrentQuarterText.]}
         }
 
         \vspace{0.3em}
-        \textbf{\color{textpurple} \underline{Sectorally:}} \\
+        \textbf{\color{textpurple} \underline{\ECESContent{exec_box_label_sector}{Sectorally:}}} \\
         {\color{textpurple}
          \ECESContent{exec_box_sector}{[TODO: Enter 1-2 bullet points on BPI performance by sector for \CurrentQuarterText.]}
         }
 
         \vspace{0.3em}
-        \textbf{\color{textgreen} \underline{Challenges:}} \\
+        \textbf{\color{textgreen} \underline{\ECESContent{exec_box_label_challenges}{Challenges:}}} \\
         {\color{textgreen}
         \ECESContent{exec_box_challenges}{[TODO: Enter 1-2 bullet points on top business constraints for \CurrentQuarterText.]}
         }
@@ -77,7 +77,7 @@
 %% TODO: Upload ch1.png — Business Performance Index (overall trend chart) via Chart Manager
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
-    \fontsize{10}{13}\selectfont
+    \FontBody
     \vspace{0pt}
     \ECESContent{exec_bpi_analysis}{[TODO: Enter analysis of the Business Performance Index for \CurrentQuarterText. Compare to previous quarter \PreviousQuarterText and corresponding quarter \CorrespQuarterText.]}
 \end{minipage}%
@@ -91,7 +91,7 @@
 \vspace{0.8em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{exec_expectations}{[TODO: Enter analysis of the Performance Expectations Index for the upcoming quarter \NextQuarterText.]}
 }
 
@@ -108,9 +108,9 @@
 \noindent
 \begin{minipage}[t]{0.58\textwidth}
     \vspace{0pt}
-    {\fontsize{10}{13}\selectfont \textbf{\color{textblue} \underline{According to size:}}} \vspace{0.6em}
+    \ECESPageSectionHead{textblue}{\ECESContent{exec_heading_size}{According to size:}} \vspace{0.6em}
 
-    {\fontsize{10}{13}\selectfont
+    {\FontBody
     \ECESContent{exec_size_detail}{[TODO: Enter detailed analysis of BPI by firm size (large vs. SMEs) for \CurrentQuarterText.]}
     }
 \end{minipage}%
@@ -127,10 +127,10 @@
 % SECTION 2: SECTORALLY
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\color{textpurple} \underline{Sectorally:}}} \vspace{0.6em}
+\ECESPageSectionHead{textpurple}{\ECESContent{exec_heading_sector}{Sectorally:}} \vspace{0.6em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{exec_sector_summary}{[TODO: Enter summary of BPI by sector for \CurrentQuarterText. Mention best- and worst-performing sectors.]}
 }
 
@@ -146,7 +146,7 @@
 % SECTION 3: DETAILED TEXT (Sector highlights)
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{exec_manufacturing}{[TODO: Enter analysis of the manufacturing sector performance for \CurrentQuarterText.]}
 
 \vspace{0.8em}
@@ -165,23 +165,28 @@
 % ---------------------------------------------------------
 
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\color{textgreen} \underline{Challenges and priorities from the business community's perspective:}}} \vspace{0.8em}
+\ECESPageSectionHead{textgreen}{\ECESContent{exec_heading_challenges}{Challenges and priorities from the business community's perspective:}} \vspace{0.8em}
 
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{exec_challenges_headline}{[TODO: Enter the single top constraint facing all firms during \CurrentQuarterText.]}}} \vspace{0.8em}
+{\FontBody\textbf{\ECESContent{exec_challenges_headline}{[TODO: Enter the single top constraint facing all firms during \CurrentQuarterText.]}}} \vspace{0.8em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{exec_challenges_body}{[TODO: Enter ranked list of top 4–5 constraints facing businesses during \CurrentQuarterText, with brief explanations.]}
 
 \vspace{0.8em}
 
 \ECESContent{exec_sme_comparison}{[TODO: Describe how SMEs' constraint profile compares to large firms during \CurrentQuarterText.]}
+}
 
 \vspace{0.8em}
 
-\ECESContent{exec_priorities}{[TODO: List the key business environment improvement priorities identified by firms for \CurrentQuarterText.]}
-}
+\begin{tikzpicture}
+    \node[ECESattention] {
+        \FontBody\textbf{\ECESContent{exec_priorities_label}{Main priorities:}}
+        \ECESContent{exec_priorities}{[TODO: List the key business environment improvement priorities identified by firms for \CurrentQuarterText.]}
+    };
+\end{tikzpicture}
 
 \vspace{2em}
 
@@ -190,12 +195,12 @@
 % ---------------------------------------------------------
 
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\color{black} \underline{Main Macroeconomic Developments: *}}} \vspace{0.5em}
+\ECESPageSectionHead{ecestitle}{\ECESContent{exec_heading_macro}{Main Macroeconomic Developments: *}} \vspace{0.5em}
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \textbf{Globally:} \ECESContent{exec_macro_global}{[TODO: Enter 1–2 sentence summary of global economic conditions relevant to \CurrentQuarterText.]}
+    \item \FontBody\textbf{\ECESContent{exec_macro_global_label}{Globally:}} \ECESContent{exec_macro_global}{[TODO: Enter 1–2 sentence summary of global economic conditions relevant to \CurrentQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \textbf{Locally:} \ECESContent{exec_macro_local}{[TODO: Enter 1–2 sentence summary of Egyptian macroeconomic conditions during \CurrentQuarterText.]}
+    \item \FontBody\textbf{\ECESContent{exec_macro_local_label}{Locally:}} \ECESContent{exec_macro_local}{[TODO: Enter 1–2 sentence summary of Egyptian macroeconomic conditions during \CurrentQuarterText.]}
 \end{itemize}
 
 % ---------------------------------------------------------
@@ -204,8 +209,8 @@
 \vfill
 
 \noindent
-{\fontsize{9}{11}\selectfont
-* For more details on the latest global, regional and local financial developments, refer to the monthly financial report (\textbf{\color{eceslink} \underline{Financial Markets Snapshot}}).
+{\FontSmallHead
+\ECESContent{exec_footnote_macro}{* For more details on the latest global, regional and local financial developments, refer to the monthly financial report (\textbf{\color{eceslink} \underline{Financial Markets Snapshot}}).}
 }
 
 % ---------------------------------------------------------

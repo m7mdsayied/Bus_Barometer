@@ -4,7 +4,7 @@
 
 % 1. Geometry
 % Standard margins for the main text area
-\newgeometry{left=2cm, right=2cm, top=3cm, bottom=2.5cm}
+\GeomStandard
 
 % 2. Background Image & Graphics
 \begin{tikzpicture}[remember picture, overlay]
@@ -25,14 +25,14 @@
 \noindent
 \begin{minipage}{0.85\textwidth}
 
-    {\fontsize{20}{24}\selectfont \textbf{\color{ecestitle} \ECESContent{title_bbi_ar}{مؤشر بارومتر الأعمال}}}
+    {\FontBBITitle\textbf{\color{ecestitle} \ECESContent{title_bbi_ar}{مؤشر بارومتر الأعمال}}}
     \vspace{0.5em}
     \label{sec:ar_bbi}
-    {\fontsize{18}{22}\selectfont \textbf{\color{ecestitle} \ECESContent{title_section_i_ar}{أولاً: تقييم الأداء والتوقعات وفقاً للمؤشر الإجمالي}}}
+    {\FontReportSection\textbf{\color{ecestitle} \ECESContent{title_section_i_ar}{أولاً: تقييم الأداء والتوقعات وفقاً للمؤشر الإجمالي}}}
 
     \vspace{0.8em}
     \label{sec:ar_eval_overall}
-    {\fontsize{11}{14}\selectfont \textbf{\ECESContent{overall_intro_ar}{[أدخل: العنوان الفرعي البارز — ملخص جملة واحدة لأداء مؤشر الأعمال الإجمالي خلال الربع.]}}}
+    {\FontSubSection\textbf{\ECESContent{overall_intro_ar}{[أدخل: العنوان الفرعي البارز — ملخص جملة واحدة لأداء مؤشر الأعمال الإجمالي خلال الربع.]}}}
 
 \end{minipage}
 
@@ -42,12 +42,12 @@
 % SUBSECTION 1-1
 % ---------------------------------------------------------
 \noindent
-{\fontsize{12}{15}\selectfont \textbf{\color{ecestitle} \textit{\ECESContent{title_subsection_11_ar}{1-1 تطور المؤشر الإجمالي}}}}
+{\FontSubSection\textbf{\color{ecestitle} \textit{\ECESContent{title_subsection_11_ar}{1-1 تطور المؤشر الإجمالي}}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{11}{14}\selectfont
+{\FontBody
 \ECESContent{overall_bpi_text_ar}{[أدخل: تحليل مؤشر أداء الأعمال للربع (\CurrentQuarterTextAr) — القيمة مقارنة بالمستوى المحايد والربع السابق مع ذكر الأسباب والمؤشرات الفرعية المؤثرة (الشكل 1-1).]}
 
 \vspace{0.8em}
@@ -63,7 +63,7 @@
 \begin{figure}[h!]
     \centering
     % Main Overall Index Chart
-    \includegraphics[width=\linewidth]{ch9.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch9.png}
 \end{figure}
 
 % ---------------------------------------------------------
@@ -71,7 +71,7 @@
 % ---------------------------------------------------------
 \vspace{0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{overall_footnotes_pg12_ar}{\textit{المصدر:} نتائج الاستبيان.\\
 * البيانات الخاصة بالفترة يناير - مارس 2020 غير متاحة بسبب الإغلاق أثناء الجائحة.\\
 ** البيانات الخاصة بالفترة أبريل - يونيو 2020 غير متاحة بسبب الإغلاق أثناء الجائحة.}
@@ -84,19 +84,19 @@
 % =========================================================
 
 % 1. Geometry & Page Setup
-\newgeometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+\GeomTight
 
 
 % ---------------------------------------------------------
 % SECTION 1-2: INDEX BY FIRM SIZE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{12}{14}\selectfont \textbf{\color{ecestitle} \ECESContent{title_subsection_12_ar}{1-2 المؤشر وفقاً لأحجام الشركات}}}
+{\FontSubSection\textbf{\color{ecestitle} \ECESContent{title_subsection_12_ar}{1-2 المؤشر وفقاً لأحجام الشركات}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{overall_size_perf_ar}{[أدخل: أداء مؤشر الأعمال للشركات الكبيرة والصغيرة والمتوسطة خلال الربع (\CurrentQuarterTextAr) — مقارنة بالمستوى المحايد والربع السابق والمناظر مع ذكر الأسباب (الشكل 1-3).]}
 
 \ECESContent{overall_size_exp_ar}{[أدخل: توقعات مؤشر الأعمال للشركات الكبيرة والصغيرة والمتوسطة للربع (\NextQuarterTextAr) — مقارنة بالمستوى المحايد وأسباب التوقعات (الشكل 1-4).]}
@@ -108,7 +108,7 @@
 \begin{figure}[h!]
     \centering
     % Chart: Firm Sizes (Performance & Expectations)
-    \includegraphics[width=\linewidth]{ch10.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch10.png}
 \end{figure}
 
 \clearpage
@@ -117,12 +117,12 @@
 % ---------------------------------------------------------
 \vspace{1em}
 \noindent
-{\fontsize{12}{14}\selectfont \textbf{\color{ecestitle} \ECESContent{title_subsection_13_ar}{1-3 المؤشر وفقاً للقطاعات الاقتصادية}}}
+{\FontSubSection\textbf{\color{ecestitle} \ECESContent{title_subsection_13_ar}{1-3 المؤشر وفقاً للقطاعات الاقتصادية}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{overall_sector_intro_ar}{[أدخل: ملخص أداء القطاعات الاقتصادية — أي القطاعات تجاوز المستوى المحايد وأيها دونه، وأعلى وأدنى أداء، مع مقارنة بالربع السابق (الشكل 1-5).]}
 }
 
@@ -132,7 +132,7 @@
 \begin{figure}[h!]
     \centering
     % Chart: Sectors Performance
-    \includegraphics[width=\linewidth]{ch11.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch11.png}
 \end{figure}
 
 
@@ -140,7 +140,7 @@
 % INTRO TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_perf_intro_ar}{[أدخل: جملة تمهيدية لتحليل أداء القطاعات تشير إلى أن ما يلي تحليل لأداء كل قطاع مقارنة بالربعين السابق والمناظر.]}}}
+{\FontBody\textbf{\ECESContent{overall_sector_perf_intro_ar}{[أدخل: جملة تمهيدية لتحليل أداء القطاعات تشير إلى أن ما يلي تحليل لأداء كل قطاع مقارنة بالربعين السابق والمناظر.]}}}
 
 \vspace{0.5em}
 
@@ -148,17 +148,17 @@
 % MAIN BULLET POINTS (Past Performance)
 % ---------------------------------------------------------
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_manufacturing_ar}{[أدخل: أداء قطاع الصناعات التحويلية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_manufacturing_ar}{[أدخل: أداء قطاع الصناعات التحويلية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_construction_ar}{[أدخل: أداء قطاع التشييد والبناء — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_construction_ar}{[أدخل: أداء قطاع التشييد والبناء — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_tourism_ar}{[أدخل: أداء قطاع السياحة — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_tourism_ar}{[أدخل: أداء قطاع السياحة — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_transport_ar}{[أدخل: أداء قطاع النقل — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_transport_ar}{[أدخل: أداء قطاع النقل — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_telecom_ar}{[أدخل: أداء قطاع الاتصالات — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_telecom_ar}{[أدخل: أداء قطاع الاتصالات — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_financial_ar}{[أدخل: أداء قطاع الخدمات المالية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_perf_financial_ar}{[أدخل: أداء قطاع الخدمات المالية — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 \end{itemize}
 
 \vspace{1em}
@@ -168,10 +168,10 @@
 % ---------------------------------------------------------
 \clearpage
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_exp_intro_ar}{[أدخل: جملة تمهيدية لتوقعات القطاعات — ملخص عام لما إذا كانت التوقعات تتجاوز المستوى المحايد.]}}}
+{\FontBody\textbf{\ECESContent{overall_sector_exp_intro_ar}{[أدخل: جملة تمهيدية لتوقعات القطاعات — ملخص عام لما إذا كانت التوقعات تتجاوز المستوى المحايد.]}}}
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_manufacturing_ar}{[أدخل: توقعات قطاع الصناعات التحويلية للربع القادم — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
+    \item \FontBody\ECESContent{overall_exp_manufacturing_ar}{[أدخل: توقعات قطاع الصناعات التحويلية للربع القادم — القيمة مقارنة بالمستوى المحايد والربعين السابق والمناظر مع الأسباب.]}
 \end{itemize}
 
 
@@ -179,15 +179,15 @@
 % BULLET POINTS (Sector Outlooks)
 % ---------------------------------------------------------
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_construction_ar}{[أدخل: توقعات قطاع التشييد والبناء للربع القادم — القيمة والأسباب.]}
+    \item \FontBody\ECESContent{overall_exp_construction_ar}{[أدخل: توقعات قطاع التشييد والبناء للربع القادم — القيمة والأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_tourism_ar}{[أدخل: توقعات قطاع السياحة للربع القادم — القيمة والأسباب.]}
+    \item \FontBody\ECESContent{overall_exp_tourism_ar}{[أدخل: توقعات قطاع السياحة للربع القادم — القيمة والأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_transport_ar}{[أدخل: توقعات قطاع النقل للربع القادم — القيمة والأسباب.]}
+    \item \FontBody\ECESContent{overall_exp_transport_ar}{[أدخل: توقعات قطاع النقل للربع القادم — القيمة والأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_telecom_ar}{[أدخل: توقعات قطاع الاتصالات للربع القادم — القيمة والأسباب.]}
+    \item \FontBody\ECESContent{overall_exp_telecom_ar}{[أدخل: توقعات قطاع الاتصالات للربع القادم — القيمة والأسباب.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_financial_ar}{[أدخل: توقعات قطاع الخدمات المالية للربع القادم — القيمة والأسباب (الشكل 1-6).]}
+    \item \FontBody\ECESContent{overall_exp_financial_ar}{[أدخل: توقعات قطاع الخدمات المالية للربع القادم — القيمة والأسباب (الشكل 1-6).]}
 \end{itemize}
 
 \vspace{0.5em}
@@ -198,11 +198,12 @@
 \begin{figure}[h!]
     \centering
     % Chart: Sectors Expectations
-    \includegraphics[width=\linewidth]{ch12.png}
+    \includegraphics[width=\linewidth, keepaspectratio]{ch12.png}
 \end{figure}
 
 \vspace{-0.5em}
 \noindent
-{\fontsize{8}{10}\selectfont \ECESContent{overall_source_pg15_ar}{المصدر: نتائج الاستبيان.}}
+{\FontSource\ECESContent{overall_source_pg15_ar}{المصدر: نتائج الاستبيان.}}
 
+\restoregeometry
 \clearpage

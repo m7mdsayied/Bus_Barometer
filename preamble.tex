@@ -68,7 +68,7 @@
         \node[anchor=north west, inner sep=0pt] at (current page.north west) {
             \includegraphics[width=\paperwidth, height=\paperheight]{\CurrentBgImage}
         };
-        
+
         % 2. Draw the Page Number (only if \ShowPageNum is true)
         \ifShowPageNum
             \node[anchor=south west] at ([xshift=1cm, yshift=1.2cm]current page.south west) {
@@ -77,3 +77,83 @@
         \fi
     \end{tikzpicture}
 }
+
+% =========================================================
+% LAYER 1 — DEFAULT TEXT COLOR
+% =========================================================
+\AtBeginDocument{\color{textdark}}
+
+% =========================================================
+% LAYER 1 — NAMED TIKZ BOX STYLES
+% =========================================================
+\tikzset{
+  ECEShighlight/.style={%          exec summary highlights box
+    draw=ecesteal, line width=1.5pt,
+    fill=ecesteal!5,
+    rounded corners=8pt,
+    inner sep=12pt,
+    align=justify,
+    text width=\dimexpr\linewidth-24pt\relax
+  },
+  ECESattention/.style={%          priorities / green-accent box
+    draw=textgreen, fill=textgreen!5,
+    rounded corners=5pt,
+    inner sep=10pt,
+    text width=\dimexpr\linewidth-24pt\relax
+  },
+  ECESformula/.style={%            equation box (methodology)
+    draw=ecesteal, fill=ecesteal,
+    rounded corners=5pt,
+    inner sep=14pt
+  }
+}
+
+% =========================================================
+% LAYER 2 — TYPOGRAPHY SEMANTIC COMMANDS
+% =========================================================
+\newcommand{\FontPageTitle}{\fontsize{22}{26}\selectfont}
+\newcommand{\FontMacroTitle}{\fontsize{21}{25}\selectfont}
+\newcommand{\FontBBITitle}{\fontsize{20}{24}\selectfont}
+\newcommand{\FontReportSection}{\fontsize{18}{22}\selectfont}
+\newcommand{\FontSectionHead}{\fontsize{10}{13}\selectfont}
+\newcommand{\FontSubSection}{\fontsize{11}{14}\selectfont}
+\newcommand{\FontBodyLg}{\fontsize{10}{13}\selectfont}
+\newcommand{\FontBody}{\fontsize{10}{13}\selectfont}
+\newcommand{\FontSmallHead}{\fontsize{9}{11}\selectfont}
+\newcommand{\FontCaption}{\fontsize{10}{12}\selectfont}
+\newcommand{\FontSource}{\fontsize{8}{10}\selectfont}
+\newcommand{\FontNote}{\fontsize{7}{9}\selectfont}
+\newcommand{\FontTableTitle}{\fontsize{9}{11}\selectfont}
+
+% Compound structural helpers
+\newcommand{\ECESSectionHeading}[2]{%
+  {\FontSubSection\textbf{\color{#1}\underline{#2}}}}
+
+\newcommand{\ECESPageSectionHead}[2]{%
+  {\FontSectionHead\textbf{\color{#1}\underline{#2}}}}
+
+\newcommand{\ECESPageTitle}[1]{%
+  \noindent{\FontPageTitle\textbf{\color{ecestitle}#1}}}
+
+\newcommand{\ECESFigCaption}[1]{%
+  \noindent{\FontCaption\textbf{\color{ecestitle}#1}}}
+
+\newcommand{\ECESSourceNote}[1]{%
+  \noindent{\FontSource\textit{#1}}}
+
+\newcommand{\ECESSmallNote}[1]{%
+  \noindent{\FontNote\textit{#1}}}
+
+\newcommand{\ECESFootnoteRule}{%
+  \vfill\noindent\rule{5cm}{0.4pt}\vspace{0.3em}}
+
+% =========================================================
+% LAYER 3 — GEOMETRY PRESETS
+% =========================================================
+\newcommand{\GeomExecSummary}{\newgeometry{left=5cm, right=1.5cm, top=1cm, bottom=2.5cm}}
+\newcommand{\GeomMacroMain}{\newgeometry{left=4cm, right=1cm, top=1cm, bottom=3cm}}
+\newcommand{\GeomMacroDeep}{\newgeometry{left=5cm, right=1.5cm, top=3cm, bottom=2.5cm}}
+\newcommand{\GeomStandard}{\newgeometry{left=2cm, right=2cm, top=3cm, bottom=2.5cm}}
+\newcommand{\GeomTight}{\newgeometry{left=2cm, right=2cm, top=1cm, bottom=1cm}}
+\newcommand{\GeomTightTop}{\newgeometry{left=2cm, right=2cm, top=1cm, bottom=2.5cm}}
+\newcommand{\GeomMid}{\newgeometry{left=2cm, right=2cm, top=2cm, bottom=2.5cm}}

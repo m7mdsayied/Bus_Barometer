@@ -3,7 +3,7 @@
 % =========================================================
 
 % 1. Geometry
-\newgeometry{left=2cm, right=2cm, top=3cm, bottom=2.5cm}
+\GeomStandard
 
 % 2. Top Right Gadgets
 \begin{tikzpicture}[remember picture, overlay]
@@ -18,14 +18,14 @@
 \noindent
 \begin{minipage}{0.85\textwidth}
 
-    {\fontsize{20}{24}\selectfont \textbf{\color{ecestitle} \ECESContent{title_bbi}{Business Barometer Index (BBI)}}}
+    {\FontBBITitle\textbf{\color{ecestitle} \ECESContent{title_bbi}{Business Barometer Index (BBI)}}}
 
     \vspace{0.5em}
 
-    {\fontsize{18}{22}\selectfont \textbf{\color{ecestitle} \ECESContent{title_section_i}{I. Performance evaluation and expectations \\ according to the overall index}}}
+    {\FontReportSection\textbf{\color{ecestitle} \ECESContent{title_section_i}{I. Performance evaluation and expectations \\ according to the overall index}}}
     \vspace{0.8em}
     \label{sec:bbi}
-    {\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_intro}{[TODO: Enter a 1-2 sentence headline summary of BPI performance vs the neutral level for \CurrentQuarterText.]}}}
+    {\FontBody\textbf{\ECESContent{overall_intro}{[TODO: Enter a 1-2 sentence headline summary of BPI performance vs the neutral level for \CurrentQuarterText.]}}}
 
 \end{minipage}
 
@@ -35,12 +35,12 @@
 % SUBSECTION 1-1
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{\color{ecestitle} \textit{1-1 Overall index}}}
+{\FontSubSection\textbf{\color{ecestitle} \textit{\ECESContent{title_subsection_11}{1-1 Overall index}}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{overall_bpi_text}{[TODO: Enter detailed analysis of the Business Performance Index for \CurrentQuarterText — its score relative to neutral, comparison to \PreviousQuarterText and \CorrespQuarterText, and key sub-index drivers (Figure 1-1).]}
 
 \vspace{0.8em}
@@ -62,7 +62,7 @@
 % FOOTNOTES / SOURCE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{8}{10}\selectfont
+{\FontSource
 \ECESContent{overall_footnotes_pg12}{[TODO: Enter source note and any applicable data caveats (e.g. pandemic lockdown quarters).]}
 }
 
@@ -72,13 +72,13 @@
 % PAGE 13: CHARTS (Firm Size & Sectors)
 % =========================================================
 
-\newgeometry{left=2cm, right=2cm, top=1cm, bottom=1cm}
+\GeomTight
 
 % ---------------------------------------------------------
 % SECTION 1-2: INDEX BY FIRM SIZE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{9}{11}\selectfont \textbf{\color{ecestitle} 1-2 The index according by firm size}}
+{\FontSmallHead\textbf{\color{ecestitle} \ECESContent{title_subsection_12}{1-2 The index according to firm size}}}
 
 \noindent
 {\fontsize{8}{11}\selectfont
@@ -97,7 +97,7 @@
 % SECTION 1-3: INDEX BY ECONOMIC SECTORS
 % ---------------------------------------------------------
 \noindent
-{\fontsize{9}{12}\selectfont \textbf{\color{ecestitle} 1-3 The index according to economic sectors}}
+{\FontSmallHead\textbf{\color{ecestitle} \ECESContent{title_subsection_13}{1-3 The index according to economic sectors}}}
 
 \noindent
 {\fontsize{8}{11}\selectfont
@@ -116,34 +116,34 @@
 % PAGE 14: DETAILED SECTOR ANALYSIS
 % =========================================================
 
-\newgeometry{left=2cm, right=2cm, top=1cm, bottom=1cm}
+\GeomTight
 
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_perf_intro}{[TODO: Enter the standard introductory sentence for the sector-by-sector analysis.]}}}
+{\FontBody\textbf{\ECESContent{overall_sector_perf_intro}{[TODO: Enter the standard introductory sentence for the sector-by-sector analysis.]}}}
 
 \vspace{0.5em}
 \label{sec:eval_overall}
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_manufacturing}{[TODO: Enter manufacturing sector performance for \CurrentQuarterText — score vs neutral, vs previous quarter, vs corresponding quarter, and key sub-index drivers.]}
+    \item \FontBody\ECESContent{overall_perf_manufacturing}{[TODO: Enter manufacturing sector performance for \CurrentQuarterText — score vs neutral, vs previous quarter, vs corresponding quarter, and key sub-index drivers.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_construction}{[TODO: Enter construction sector performance for \CurrentQuarterText.]}
+    \item \FontBody\ECESContent{overall_perf_construction}{[TODO: Enter construction sector performance for \CurrentQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_tourism}{[TODO: Enter tourism sector performance for \CurrentQuarterText.]}
+    \item \FontBody\ECESContent{overall_perf_tourism}{[TODO: Enter tourism sector performance for \CurrentQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_transport}{[TODO: Enter transport sector performance for \CurrentQuarterText.]}
+    \item \FontBody\ECESContent{overall_perf_transport}{[TODO: Enter transport sector performance for \CurrentQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_telecom}{[TODO: Enter telecommunications sector performance for \CurrentQuarterText.]}
+    \item \FontBody\ECESContent{overall_perf_telecom}{[TODO: Enter telecommunications sector performance for \CurrentQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_perf_financial}{[TODO: Enter financial services sector performance for \CurrentQuarterText.]}
+    \item \FontBody\ECESContent{overall_perf_financial}{[TODO: Enter financial services sector performance for \CurrentQuarterText.]}
 \end{itemize}
 
 \vspace{1em}
 
 \noindent
-{\fontsize{10}{13}\selectfont \textbf{\ECESContent{overall_sector_exp_intro}{[TODO: Enter the standard introductory sentence for the sector outlook section.]}}}
+{\FontBody\textbf{\ECESContent{overall_sector_exp_intro}{[TODO: Enter the standard introductory sentence for the sector outlook section.]}}}
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_manufacturing}{[TODO: Enter manufacturing sector outlook for \NextQuarterText.]}
+    \item \FontBody\ECESContent{overall_exp_manufacturing}{[TODO: Enter manufacturing sector outlook for \NextQuarterText.]}
 \end{itemize}
 
 \clearpage
@@ -153,15 +153,15 @@
 % =========================================================
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_construction}{[TODO: Enter construction sector outlook for \NextQuarterText.]}
+    \item \FontBody\ECESContent{overall_exp_construction}{[TODO: Enter construction sector outlook for \NextQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_tourism}{[TODO: Enter tourism sector outlook for \NextQuarterText.]}
+    \item \FontBody\ECESContent{overall_exp_tourism}{[TODO: Enter tourism sector outlook for \NextQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_transport}{[TODO: Enter transport sector outlook for \NextQuarterText.]}
+    \item \FontBody\ECESContent{overall_exp_transport}{[TODO: Enter transport sector outlook for \NextQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_telecom}{[TODO: Enter telecommunications sector outlook for \NextQuarterText.]}
+    \item \FontBody\ECESContent{overall_exp_telecom}{[TODO: Enter telecommunications sector outlook for \NextQuarterText.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{overall_exp_financial}{[TODO: Enter financial services sector outlook for \NextQuarterText (Figure 1-6).]}
+    \item \FontBody\ECESContent{overall_exp_financial}{[TODO: Enter financial services sector outlook for \NextQuarterText (Figure 1-6).]}
 \end{itemize}
 
 \vspace{0.5em}
@@ -174,6 +174,6 @@
 
 \vspace{-0.5em}
 \noindent
-{\fontsize{7}{9}\selectfont \ECESContent{overall_source_pg15}{Source: Survey results.}}
+{\FontNote\ECESContent{overall_source_pg15}{Source: Survey results.}}
 
 \clearpage

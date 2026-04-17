@@ -104,6 +104,20 @@ def render(ctx):
     page_header("📝", "Content Editor &amp; Preview",
                 "Step 4 of 5 · Edit slot content and preview compiled PDF sections.", "#1FBACF")
 
+    if ctx.is_arabic:
+        st.markdown(
+            "<style>textarea { direction: rtl !important; text-align: right !important; }</style>",
+            unsafe_allow_html=True,
+        )
+
+    st.info(
+        "**LaTeX tip:** Use `\\\\textbf{bold}`, `\\\\textit{italic}`, "
+        "`\\\\textsuperscript{1}`. "
+        "**Avoid:** bare `%` (use `\\\\%`), unmatched `{` or `}`, "
+        "bare `\\\\` at end of a line, bare `$` or `&`.",
+        icon="ℹ️",
+    )
+
     section_keys = list(ctx.SECTION_MAP.keys())
     _cs_data = load_custom_sections()
     _cs_lang_key = "ar" if ctx.is_arabic else "en"

@@ -3,21 +3,21 @@
 % =========================================================
 
 % 1. Geometry (Sidebar on Right)
-\newgeometry{right=5cm, left=1.5cm, top=1cm, bottom=2.5cm}
+\GeomMacroMain
 
 
 % ---------------------------------------------------------
 % TITLE & INTRO
 % ---------------------------------------------------------
 \noindent
-{\fontsize{24}{28}\selectfont \textbf{\color{ecestitle}
+{\FontMacroTitle\textbf{\color{ecestitle}
 \ECESContent{title_macro_overview_ar}{نظرة عامة على الاقتصاد الكلي}
 }}
 
 \vspace{1em}
 
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{
+{\FontSubSection\textbf{
     \ECESContent{macro_global_intro_ar}{[أدخل: العنوان الرئيسي للمحور العالمي — ملخص في جملة واحدة لأبرز التطورات الاقتصادية العالمية.]}
     }}
 
@@ -27,7 +27,7 @@
 % BODY TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{macro_global_p1_ar}{[أدخل: الفقرة الأولى — توقعات النمو العالمي ومعدلاته للاقتصادات المتقدمة والناشئة مع ذكر الأسباب والمصادر.]}
 
 \vspace{0.8em}
@@ -62,7 +62,7 @@
 \vspace{0.3em}
 
 \noindent
-{\fontsize{7}{9}\selectfont
+{\FontNote
 \ECESContent{macro_footnotes_pg8_ar}{[أدخل: الحواشي والمراجع المتعلقة بمحتوى هذه الصفحة.]}
 }
 
@@ -73,14 +73,14 @@
 % =========================================================
 
 % 1. Geometry (Sidebar on Right)
-\newgeometry{right=5cm, left=1.5cm, top=1cm, bottom=2.5cm}
+\GeomMacroMain
 
 
 % ---------------------------------------------------------
 % INTRO TEXT
 % ---------------------------------------------------------
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{macro_indicators_intro_ar}{[أدخل: جملة تمهيدية للجزء الخاص بمؤشرات الاقتصاد الكلي وأحدث البيانات المتاحة.]}
 }
 
@@ -90,25 +90,23 @@
 % SECTION I: GDP GROWTH
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{أولا: معدل نمو الناتج المحلي الإجمالي}}
+{\FontSubSection\textbf{\ECESContent{macro_heading_gdp_ar}{أولا: معدل نمو الناتج المحلي الإجمالي}}}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{macro_gdp_growth_ar}{[أدخل: معدل نمو الناتج المحلي الإجمالي للربع محل الدراسة مقارنة بالربع السابق والمناظر مع القطاعات المحركة للنمو والمثبطة له.]}
 }
 
 % ---------------------------------------------------------
-% FIGURE 1: ch7.png
+% FIGURE 1: ch6.png
 % ---------------------------------------------------------
 \vspace{0.5em}
-\noindent
-{\fontsize{10}{12}\selectfont \textbf{\color{ecestitle} الشكل 1: النمو في الناتج المحلي الإجمالي الحقيقي}}
+\ECESFigCaption{\ECESContent{macro_chart1_caption_ar}{الشكل 1: النمو في الناتج المحلي الإجمالي الحقيقي}}
 
 \noindent
-\includegraphics[width=\linewidth]{ch7.png}
+\includegraphics[width=\linewidth, keepaspectratio]{ch6.png}
 
-\noindent
-{\fontsize{8}{10}\selectfont \textit{المصدر: وزارة التخطيط والتنمية الاقتصادية والتعاون الدولي.}}
+\ECESSourceNote{\ECESContent{macro_chart1_source_ar}{المصدر: وزارة التخطيط والتنمية الاقتصادية والتعاون الدولي.}}
 
 \vspace{1.5em}
 
@@ -116,10 +114,10 @@
 % SECTION II: INFLATION
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{ثانيا: معدل التضخم}}
+{\FontSubSection\textbf{\ECESContent{macro_heading_inflation_ar}{ثانيا: معدل التضخم}}}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{macro_inflation_p1_ar}{[أدخل: معدل التضخم خلال الربع محل الدراسة مقارنة بالربع السابق مع الأسباب والمصادر.]}
 
 \vspace{0.8em}
@@ -138,7 +136,7 @@
 \vspace{0.3em}
 
 \noindent
-{\fontsize{7}{9}\selectfont
+{\FontNote
 \ECESContent{macro_footnotes_pg9_ar}{[أدخل: الحواشي والمراجع المتعلقة بمحتوى هذه الصفحة.]}
 }
 
@@ -149,19 +147,17 @@
 % =========================================================
 
 % 1. Geometry (Sidebar on Right)
-\newgeometry{right=5cm, left=1.5cm, top=1cm, bottom=2.5cm}
+\GeomMacroMain
 
 % ---------------------------------------------------------
-% FIGURE 2: ch8.png
+% FIGURE 2: ch7.png
 % ---------------------------------------------------------
-\noindent
-{\fontsize{10}{12}\selectfont \textbf{\color{ecestitle} الشكل 2: التضخم وأسعار الفائدة الأساسية}}
+\ECESFigCaption{\ECESContent{macro_chart2_caption_ar}{الشكل 2: التضخم وأسعار الفائدة الأساسية}}
 
 \noindent
-\includegraphics[width=\linewidth]{ch8.png}
+\includegraphics[width=\linewidth, keepaspectratio]{ch7.png}
 
-\noindent
-{\fontsize{7}{9}\selectfont \textit{المصادر: البنك المركزي المصري؛ والجهاز المركزي للتعبئة العامة والإحصاء.}}
+{\FontNote\textit{\ECESContent{macro_chart2_source_ar}{المصادر: البنك المركزي المصري؛ والجهاز المركزي للتعبئة العامة والإحصاء.}}}
 
 \vspace{1.5em}
 
@@ -169,13 +165,13 @@
 % SECTION III: FOREIGN TRANSACTIONS
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{ثالثا: المعاملات الخارجية}}
+{\FontSubSection\textbf{\ECESContent{macro_heading_foreign_ar}{ثالثا: المعاملات الخارجية}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
-\textbf{ميزان المدفوعات:} \ECESContent{macro_bop_p1_ar}{[أدخل: تطور ميزان المدفوعات خلال الفترة — فائض أم عجز وأسبابه.]}
+{\FontBody
+\textbf{\ECESContent{macro_label_bop_ar}{ميزان المدفوعات:}} \ECESContent{macro_bop_p1_ar}{[أدخل: تطور ميزان المدفوعات خلال الفترة — فائض أم عجز وأسبابه.]}
 
 \vspace{0.6em}
 
@@ -187,11 +183,11 @@
 
 \vspace{0.6em}
 
-\textbf{صافي الأصول الأجنبية:} \ECESContent{macro_nfa_p1_ar}{[أدخل: تطور صافي الأصول الأجنبية للقطاع المصرفي خلال الفترة.]}
+\textbf{\ECESContent{macro_label_nfa_ar}{صافي الأصول الأجنبية:}} \ECESContent{macro_nfa_p1_ar}{[أدخل: تطور صافي الأصول الأجنبية للقطاع المصرفي خلال الفترة.]}
 
 \vspace{0.6em}
 
-\textbf{صافي الاحتياطيات الدولية:} \ECESContent{macro_reserves_p1_ar}{[أدخل: قيمة صافي الاحتياطيات الدولية في نهاية الربع ومقارنتها بالربع السابق والمناظر.]}
+\textbf{\ECESContent{macro_label_reserves_ar}{صافي الاحتياطيات الدولية:}} \ECESContent{macro_reserves_p1_ar}{[أدخل: قيمة صافي الاحتياطيات الدولية في نهاية الربع ومقارنتها بالربع السابق والمناظر.]}
 
 \vspace{0.6em}
 
@@ -209,7 +205,7 @@
 \vspace{0.3em}
 
 \noindent
-{\fontsize{7}{9}\selectfont
+{\FontNote
 \ECESContent{macro_footnotes_pg10_ar}{[أدخل: الحواشي والمراجع المتعلقة بمحتوى هذه الصفحة.]}
 }
 
@@ -220,20 +216,18 @@
 % =========================================================
 
 % 1. Geometry (Sidebar on Right)
-\newgeometry{right=5cm, left=1.5cm, top=3cm, bottom=2.5cm}
+\GeomMacroDeep
 
 
 % ---------------------------------------------------------
-% FIGURE 3: ch9.png
+% FIGURE 3: ch8.png
 % ---------------------------------------------------------
-\noindent
-{\fontsize{10}{12}\selectfont \textbf{\color{ecestitle} الشكل 3: صافي الاحتياطيات الدولية وسعر الصرف}}
+\ECESFigCaption{\ECESContent{macro_chart3_caption_ar}{الشكل 3: صافي الاحتياطيات الدولية وسعر الصرف}}
 
 \noindent
-\includegraphics[width=\linewidth]{ch9.png}
+\includegraphics[width=\linewidth, keepaspectratio]{ch8.png}
 
-\noindent
-{\fontsize{7}{9}\selectfont \textit{المصادر: البنك المركزي المصري؛ ووزارة المالية.}}
+{\FontNote\textit{\ECESContent{macro_chart3_source_ar}{المصادر: البنك المركزي المصري؛ ووزارة المالية.}}}
 
 \vspace{2em}
 
@@ -241,21 +235,21 @@
 % SECTION IV: PUBLIC FINANCE
 % ---------------------------------------------------------
 \noindent
-{\fontsize{11}{14}\selectfont \textbf{رابعا: المالية العامة}}
+{\FontSubSection\textbf{\ECESContent{macro_heading_finance_ar}{رابعا: المالية العامة}}}
 
 \vspace{0.5em}
 
 \noindent
-{\fontsize{10}{13}\selectfont
+{\FontBody
 \ECESContent{macro_public_finance_intro_ar}{[أدخل: العجز الكلي في الموازنة العامة كنسبة من الناتج المحلي الإجمالي ومقارنته بالعام السابق.]}
 }
 
 \begin{itemize} \itemsep0.6em
-    \item \fontsize{10}{13}\selectfont \ECESContent{macro_public_finance_b1_ar}{[أدخل: تطور الإيرادات العامة — الإيرادات الضريبية وغير الضريبية.]}
+    \item \FontBody\ECESContent{macro_public_finance_b1_ar}{[أدخل: تطور الإيرادات العامة — الإيرادات الضريبية وغير الضريبية.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{macro_public_finance_b2_ar}{[أدخل: تطور المصروفات العامة — الإنفاق الاجتماعي وفوائد الدين.]}
+    \item \FontBody\ECESContent{macro_public_finance_b2_ar}{[أدخل: تطور المصروفات العامة — الإنفاق الاجتماعي وفوائد الدين.]}
 
-    \item \fontsize{10}{13}\selectfont \ECESContent{macro_public_finance_b3_ar}{[أدخل: نسبة الدين إلى الناتج المحلي الإجمالي وتطورها.]}
+    \item \FontBody\ECESContent{macro_public_finance_b3_ar}{[أدخل: نسبة الدين إلى الناتج المحلي الإجمالي وتطورها.]}
 \end{itemize}
 
 % ---------------------------------------------------------
@@ -269,8 +263,9 @@
 \vspace{0.3em}
 
 \noindent
-{\fontsize{7}{9}\selectfont
+{\FontNote
 \ECESContent{macro_footnotes_pg11_ar}{[أدخل: الحواشي والمراجع المتعلقة بمحتوى هذه الصفحة.]}
 }
 
+\restoregeometry
 \clearpage
