@@ -21,9 +21,15 @@ if not _activity_logger.handlers:
     _fh.setFormatter(logging.Formatter("%(asctime)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
     _activity_logger.addHandler(_fh)
 
+# Debounce: upload activity.log at most once every 30 seconds to reduce
+# Class A operations on R2. The local file is always written immediately.
+_ACTIVITY_UPLOAD_INTERVAL = 30  # seconds
+_last_activity_upload: float = 0.0
+
 
 def log_activity(action: str, user: str = "", detail: str = ""):
-    """Write a structured line to activity.log."""
+    """Write a structured line to activity.log and sync to R2 (debounced)."""
+    global _last_activity_upload
     user = user or st.session_state.get("current_user", "unknown")
     # Strip characters that could forge log fields (newlines, pipe, em-dash separator)
     for ch in ("\n", "\r", "|", " — ", " - "):
@@ -32,7 +38,12 @@ def log_activity(action: str, user: str = "", detail: str = ""):
     _activity_logger.info(f"[{user}] {action}" + (f" — {detail}" if detail else ""))
     for handler in _activity_logger.handlers:
         handler.flush()
-    _storage.upload(ACTIVITY_LOG)
+    # Only upload to R2 if enough time has passed since the last upload.
+    # This turns N uploads-per-session into ~1 upload per 30 seconds.
+    now = time.time()
+    if now - _last_activity_upload >= _ACTIVITY_UPLOAD_INTERVAL:
+        _storage.upload(ACTIVITY_LOG)
+        _last_activity_upload = now
     parse_activity_log.clear()
 
 
