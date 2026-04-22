@@ -176,13 +176,35 @@ def delete_prefix(prefix: str):
         _log.warning("Delete prefix failed for %s: %s", prefix, e)
 
 
-def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
-    """Recursively upload all files in a local directory."""
+def upload_dir(
+    local_dir: str | Path,
+    cloud_prefix: str | None = None,
+    max_workers: int = 16,
+    progress_callback=None,
+) -> int:
+    """Recursively upload all files in a local directory in parallel.
+
+    Args:
+        local_dir: Root directory to walk.
+        cloud_prefix: Override the cloud key prefix (otherwise derived from BASE_DIR).
+        max_workers: Concurrent upload threads (default 16).
+        progress_callback: Optional callable(uploaded, total) called after each file.
+
+    Returns:
+        Number of files successfully uploaded.
+    """
     if not _enabled():
-        return
-    for path in Path(local_dir).rglob("*"):
-        if not path.is_file():
-            continue
+        return 0
+
+    files = [p for p in Path(local_dir).rglob("*") if p.is_file()]
+    if not files:
+        return 0
+
+    total = len(files)
+    uploaded = 0
+    failed = 0
+
+    def _upload_one(path: Path) -> bool:
         try:
             if cloud_prefix:
                 rel = str(path.relative_to(local_dir)).replace("\\", "/")
@@ -196,8 +218,24 @@ def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
                     Body=f.read(),
                     ContentType=_content_type(path),
                 )
+            return True
         except Exception as e:
             _log.warning("Upload dir failed for %s: %s", path, e)
+            return False
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        for success in pool.map(_upload_one, files):
+            if success:
+                uploaded += 1
+            else:
+                failed += 1
+            if progress_callback:
+                progress_callback(uploaded + failed, total)
+
+    if failed:
+        _log.warning("upload_dir: %d/%d files failed for prefix '%s'", failed, total, cloud_prefix or local_dir)
+
+    return uploaded
 
 
 # ── Directory listing ─────────────────────────────────────────────────────────

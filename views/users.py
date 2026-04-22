@@ -193,15 +193,45 @@ def render(ctx):
                         USERS_FILE,
                         ACTIVITY_LOG,
                     ]
-                    with st.spinner("Uploading to R2…"):
-                        for prefix, path in _dirs:
-                            if os.path.isdir(path):
-                                _storage.upload_dir(path, prefix)
-                        for fpath in _files:
-                            if os.path.isfile(fpath):
-                                _storage.upload(fpath)
-                    log_activity("R2_FULL_SYNC", detail="manual full upload from admin panel")
-                    st.success("All files uploaded to R2.")
+                    # Count total files upfront so we can show a real progress bar
+                    _all_files = []
+                    for _pfx, _dpath in _dirs:
+                        if os.path.isdir(_dpath):
+                            _all_files += [
+                                p for p in __import__("pathlib").Path(_dpath).rglob("*")
+                                if p.is_file()
+                            ]
+                    _all_files += [f for f in _files if os.path.isfile(f)]
+                    _total = len(_all_files)
+
+                    st.markdown(f"Uploading **{_total} files** to R2…")
+                    _bar  = st.progress(0.0)
+                    _info = st.empty()
+                    _done = [0]   # mutable counter for callback closure
+
+                    def _on_progress(uploaded, total):
+                        _done[0] = uploaded
+                        pct = uploaded / total if total else 1.0
+                        _bar.progress(min(pct, 1.0))
+                        _info.caption(f"{uploaded} / {total} files uploaded")
+
+                    _uploaded_count = 0
+                    for _pfx, _dpath in _dirs:
+                        if os.path.isdir(_dpath):
+                            _info.caption(f"Uploading {os.path.basename(_dpath)}/…")
+                            _uploaded_count += _storage.upload_dir(
+                                _dpath, _pfx,
+                                progress_callback=_on_progress,
+                            )
+                    for _fpath in _files:
+                        if os.path.isfile(_fpath):
+                            _storage.upload(_fpath)
+                            _uploaded_count += 1
+                            _on_progress(_done[0] + 1, _total)
+
+                    _bar.progress(1.0)
+                    log_activity("R2_FULL_SYNC", detail=f"manual full upload — {_uploaded_count} files")
+                    st.success(f"✅ {_uploaded_count} files uploaded to R2.")
             with cs2:
                 if st.button("✗ Cancel", key="confirm_sync_no"):
                     st.session_state["confirm_full_sync"] = False
