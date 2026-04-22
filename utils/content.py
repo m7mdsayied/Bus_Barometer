@@ -207,9 +207,17 @@ def add_custom_section(lang: str, title: str, sec_type: str):
 def delete_custom_section(lang: str, sec_id: str):
     _cs = load_custom_sections()
     _lang_key = "ar" if lang == "Arabic" else "en"
+    # Capture the entry before removing it so we can delete its .tex file
+    _entry = next((s for s in _cs[_lang_key] if s["id"] == sec_id), None)
     _cs[_lang_key] = [s for s in _cs[_lang_key] if s["id"] != sec_id]
     save_custom_sections(_cs)
     sync_custom_sections_file(lang)
+    # Delete the orphaned .tex file from local disk and R2
+    if _entry:
+        _fpath = os.path.join(BASE_DIR, _entry["file"])
+        if os.path.exists(_fpath):
+            os.remove(_fpath)
+        _storage.delete(_fpath)
 
 
 def sync_custom_sections_file(lang: str):

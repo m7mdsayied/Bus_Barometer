@@ -311,6 +311,10 @@ def save_issue(
             json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+        # When overwriting, purge the existing R2 prefix first so stale files
+        # (e.g. charts or overrides removed since the last save) don't linger.
+        if overwrite:
+            _storage.delete_prefix(f"issues/{lang}/{issue_num}")
         _storage.upload_dir(str(dest), cloud_prefix=f"issues/{lang}/{issue_num}")
         return True, f"Issue {issue_num} ({lang.upper()}) saved to archive."
 

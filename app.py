@@ -49,7 +49,7 @@ setup_session_state()
 
 # ── App startup tasks (run once per session, before the login gate) ───────────
 # Running here (not after login) ensures the user sees a spinner rather than
-# a frozen login button while Supabase sync / backup init complete.
+# a frozen login button while R2 sync / backup init complete.
 if not st.session_state.get("_startup_done"):
     with st.spinner("⏳ Loading application data…"):
         _storage.sync_to_local()

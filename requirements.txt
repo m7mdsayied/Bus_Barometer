@@ -4,5 +4,5 @@ pillow==12.1.0
 openpyxl==3.1.5
 bcrypt==4.0.1
 pymupdf
-supabase
+boto3
 pdf2docx

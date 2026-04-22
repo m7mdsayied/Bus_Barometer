@@ -1,18 +1,19 @@
 """
-Supabase Storage sync layer for Streamlit Cloud persistence.
+Cloudflare R2 Storage sync layer for Streamlit Cloud persistence.
 
 Strategy:
-  - On container startup: sync_to_local() pulls all objects from Supabase to disk.
-  - On every file write: upload() pushes the file to Supabase after the local write.
-  - On every file delete: delete() removes the object from Supabase.
+  - On container startup: sync_to_local() pulls all objects from R2 to disk.
+  - On every file write: upload() pushes the file to R2 after the local write.
+  - On every file delete: delete() removes the object from R2.
   - XeLaTeX compilation is unchanged — it always operates on local files.
 
 Configuration (.streamlit/secrets.toml):
-    [supabase]
-    enabled = true
-    url     = "https://<PROJECT_ID>.supabase.co"
-    key     = "your-service-role-key"
-    bucket  = "eces-barometer"
+    [r2]
+    enabled    = true
+    account_id = "<your-cloudflare-account-id>"
+    access_key = "<your-r2-access-key-id>"
+    secret_key = "<your-r2-secret-access-key>"
+    bucket     = "barometer"
 
 Set enabled = false (or omit the section) for local development — all calls
 become no-ops and the app behaves exactly as it did before.
@@ -22,7 +23,7 @@ from __future__ import annotations
 import logging
 import streamlit as st
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 _log = logging.getLogger("eces_storage")
@@ -41,20 +42,29 @@ _ISSUES_METADATA_ONLY = True
 
 def _enabled() -> bool:
     try:
-        return st.secrets.get("supabase", {}).get("enabled", False)
+        return st.secrets.get("r2", {}).get("enabled", False)
     except Exception:
         return False
 
 
 @st.cache_resource
 def _client():
-    from supabase import create_client
-    cfg = st.secrets["supabase"]
-    return create_client(cfg["url"], cfg["key"])
+    """Return a cached boto3 S3 client pointed at Cloudflare R2."""
+    import boto3
+    from botocore.config import Config
+    cfg = st.secrets["r2"]
+    return boto3.client(
+        "s3",
+        endpoint_url=f"https://{cfg['account_id']}.r2.cloudflarestorage.com",
+        aws_access_key_id=cfg["access_key"],
+        aws_secret_access_key=cfg["secret_key"],
+        config=Config(signature_version="s3v4"),
+        region_name="auto",
+    )
 
 
-def _bucket():
-    return _client().storage.from_(st.secrets["supabase"]["bucket"])
+def _bucket_name() -> str:
+    return st.secrets["r2"]["bucket"]
 
 
 def _base_dir() -> Path:
@@ -84,10 +94,10 @@ def _content_type(path: str | Path) -> str:
 # ── Core operations ───────────────────────────────────────────────────────────
 
 def upload(local_path: str | Path):
-    """Upload a single local file to Supabase Storage (upsert) in a background thread."""
+    """Upload a single local file to R2 (upsert) in a background thread."""
     if not _enabled():
         return
-    # Fire-and-forget: the file is already saved locally; cloud sync can happen async.
+    # Fire-and-forget: the file is already saved locally; cloud sync is async.
     threading.Thread(target=_upload_sync, args=(local_path,), daemon=True).start()
 
 
@@ -96,10 +106,11 @@ def _upload_sync(local_path: str | Path):
     try:
         key = _key(local_path)
         with open(local_path, "rb") as f:
-            _bucket().upload(
-                file=f.read(),
-                path=key,
-                file_options={"upsert": "true", "content-type": _content_type(local_path)},
+            _client().put_object(
+                Bucket=_bucket_name(),
+                Key=key,
+                Body=f.read(),
+                ContentType=_content_type(local_path),
             )
     except Exception as e:
         _log.warning("Upload failed for %s: %s", local_path, e)
@@ -110,22 +121,24 @@ def upload_bytes(data: bytes, key: str, content_type: str = "application/octet-s
     if not _enabled():
         return
     try:
-        _bucket().upload(
-            file=data,
-            path=key,
-            file_options={"upsert": "true", "content-type": content_type},
+        _client().put_object(
+            Bucket=_bucket_name(),
+            Key=key,
+            Body=data,
+            ContentType=content_type,
         )
     except Exception as e:
         _log.warning("Upload bytes failed for key %s: %s", key, e)
 
 
 def download(key: str, local_path: str | Path):
-    """Download an object from Supabase to a local path, creating parent dirs."""
+    """Download an object from R2 to a local path, creating parent dirs."""
     if not _enabled():
         return
     try:
         Path(local_path).parent.mkdir(parents=True, exist_ok=True)
-        data = _bucket().download(key)
+        response = _client().get_object(Bucket=_bucket_name(), Key=key)
+        data = response["Body"].read()
         with open(local_path, "wb") as f:
             f.write(data)
     except Exception as e:
@@ -133,14 +146,13 @@ def download(key: str, local_path: str | Path):
 
 
 def delete(local_path_or_key: str | Path):
-    """Delete a single object from Supabase Storage."""
+    """Delete a single object from R2."""
     if not _enabled():
         return
     try:
-        # If it looks like an absolute path, convert; otherwise use as-is
         p = Path(local_path_or_key)
         key = _key(p) if p.is_absolute() else str(local_path_or_key).replace("\\", "/")
-        _bucket().remove([key])
+        _client().delete_object(Bucket=_bucket_name(), Key=key)
     except Exception as e:
         _log.warning("Delete failed for %s: %s", local_path_or_key, e)
 
@@ -151,8 +163,15 @@ def delete_prefix(prefix: str):
         return
     try:
         keys = _list_all_keys(prefix.rstrip("/"))
-        if keys:
-            _bucket().remove(keys)
+        if not keys:
+            return
+        # S3 batch delete supports up to 1000 keys per request
+        for i in range(0, len(keys), 1000):
+            batch = keys[i : i + 1000]
+            _client().delete_objects(
+                Bucket=_bucket_name(),
+                Delete={"Objects": [{"Key": k} for k in batch]},
+            )
     except Exception as e:
         _log.warning("Delete prefix failed for %s: %s", prefix, e)
 
@@ -171,10 +190,11 @@ def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
             else:
                 key = _key(path)
             with open(path, "rb") as f:
-                _bucket().upload(
-                    file=f.read(),
-                    path=key,
-                    file_options={"upsert": "true", "content-type": _content_type(path)},
+                _client().put_object(
+                    Bucket=_bucket_name(),
+                    Key=key,
+                    Body=f.read(),
+                    ContentType=_content_type(path),
                 )
         except Exception as e:
             _log.warning("Upload dir failed for %s: %s", path, e)
@@ -183,52 +203,48 @@ def upload_dir(local_dir: str | Path, cloud_prefix: str | None = None):
 # ── Directory listing ─────────────────────────────────────────────────────────
 
 def _list_all_keys(prefix: str = "") -> list[str]:
-    """Recursively list all object keys under a prefix."""
-    try:
-        items = _bucket().list(prefix, {"limit": 1000}) or []
-    except Exception as e:
-        _log.warning("List keys failed for prefix %s: %s", prefix, e)
-        return []
+    """List all object keys under a prefix using paginated S3 listing."""
     keys: list[str] = []
-    for item in items:
-        full = f"{prefix}/{item['name']}" if prefix else item["name"]
-        if item.get("id") is None:  # virtual folder placeholder
-            keys.extend(_list_all_keys(full))
-        else:
-            keys.append(full)
+    try:
+        paginator = _client().get_paginator("list_objects_v2")
+        kwargs: dict = {"Bucket": _bucket_name()}
+        if prefix:
+            kwargs["Prefix"] = prefix.rstrip("/") + "/"
+        for page in paginator.paginate(**kwargs):
+            for obj in page.get("Contents", []):
+                keys.append(obj["Key"])
+    except Exception as e:
+        _log.warning("List keys failed for prefix '%s': %s", prefix, e)
     return keys
 
 
 def _list_all_key_sizes(prefix: str = "") -> dict[str, int]:
-    """Recursively list all objects under a prefix, returning {key: size_bytes}.
+    """List all objects under a prefix, returning {key: size_bytes}.
 
-    The size comes from the Supabase list metadata and is used by sync_to_local()
-    to skip files whose local copy already matches the cloud byte count.
-    Returns -1 for size when the metadata field is absent.
+    The size is used by sync_to_local() to skip files whose local copy already
+    matches the cloud byte count, avoiding redundant downloads on warm containers.
     """
-    try:
-        items = _bucket().list(prefix, {"limit": 1000}) or []
-    except Exception as e:
-        _log.warning("List key sizes failed for prefix %s: %s", prefix, e)
-        return {}
     result: dict[str, int] = {}
-    for item in items:
-        full = f"{prefix}/{item['name']}" if prefix else item["name"]
-        if item.get("id") is None:  # virtual folder placeholder → recurse
-            result.update(_list_all_key_sizes(full))
-        else:
-            size = (item.get("metadata") or {}).get("size", -1)
-            result[full] = size
+    try:
+        paginator = _client().get_paginator("list_objects_v2")
+        kwargs: dict = {"Bucket": _bucket_name()}
+        if prefix:
+            kwargs["Prefix"] = prefix.rstrip("/") + "/"
+        for page in paginator.paginate(**kwargs):
+            for obj in page.get("Contents", []):
+                result[obj["Key"]] = obj["Size"]
+    except Exception as e:
+        _log.warning("List key sizes failed for prefix '%s': %s", prefix, e)
     return result
 
 
 # ── Startup sync ──────────────────────────────────────────────────────────────
 
 def sync_issue(lang: str, issue_num: str | int):
-    """Download a full archived issue from Supabase on demand.
+    """Download a full archived issue from R2 on demand.
 
     Called by issue_manager.load_issue() when the local archive is incomplete
-    (e.g. only metadata.json was fetched at startup).  Already-present files
+    (e.g. only metadata.json was fetched at startup). Already-present files
     are skipped so repeated calls are cheap.
     """
     if not _enabled():
@@ -238,19 +254,19 @@ def sync_issue(lang: str, issue_num: str | int):
     for key in _list_all_keys(prefix):
         local_path = base / key
         if local_path.exists():
-            continue  # metadata.json or previously downloaded file — skip
+            continue  # already downloaded — skip
         try:
             local_path.parent.mkdir(parents=True, exist_ok=True)
-            data = _bucket().download(key)
-            local_path.write_bytes(data)
+            response = _client().get_object(Bucket=_bucket_name(), Key=key)
+            local_path.write_bytes(response["Body"].read())
         except Exception as e:
             _log.warning("sync_issue failed for %s: %s", key, e)
 
 
 def sync_to_local():
     """
-    Download essential Supabase objects to the local filesystem (called once at startup).
-    Supabase always wins over git-cloned defaults so user-saved data is restored.
+    Download essential R2 objects to the local filesystem (called once at startup).
+    R2 always wins over git-cloned defaults so user-saved data is restored.
     Safe to overwrite because this function runs only once per session (guarded by
     _startup_done in session state), so in-session writes are never clobbered.
 
@@ -266,16 +282,14 @@ def sync_to_local():
     """
     if not _enabled():
         return
+
     # Test connectivity before attempting a full sync.
-    # Supabase free-tier projects pause after 7 days of inactivity — if paused,
-    # all API calls will fail and the app would silently start with empty/stale files.
     try:
-        _bucket().list("", {"limit": 1})
+        _client().list_objects_v2(Bucket=_bucket_name(), MaxKeys=1)
     except Exception:
         st.warning(
-            "⚠️ **Cloud storage is unreachable.** Your Supabase project may be paused "
-            "(free tier pauses after 7 days of inactivity). "
-            "Visit [supabase.com](https://supabase.com) → your project → **Restore** to unpause. "
+            "⚠️ **Cloud storage is unreachable.** The R2 bucket could not be accessed. "
+            "Check your API credentials and bucket name in secrets.toml. "
             "The app is running on local files only until the connection is restored.",
             icon="⚠️",
         )
@@ -302,8 +316,8 @@ def sync_to_local():
             return
         try:
             local_path.parent.mkdir(parents=True, exist_ok=True)
-            data = _bucket().download(key)
-            local_path.write_bytes(data)
+            response = _client().get_object(Bucket=_bucket_name(), Key=key)
+            local_path.write_bytes(response["Body"].read())
         except Exception as e:
             _log.warning("Startup download failed for %s: %s", key, e)
 

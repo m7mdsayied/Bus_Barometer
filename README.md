@@ -18,8 +18,8 @@ A Streamlit-based CMS for producing the ECES Business Performance Indicator bili
 
 ```bash
 # 1. Clone the repo
-git clone <repo-url>
-cd CL_Baro
+git clone https://github.com/m7mdsayied/Bus_Barometer
+cd Bus_Barometer
 
 # 2. Create and activate virtual environment
 python -m venv venv
@@ -29,27 +29,25 @@ venv\Scripts\activate        # Windows
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Set up users (first run)
-cp users.json.example users.json
-# Edit users.json and replace placeholder hashes with real bcrypt hashes:
-# python -c "import bcrypt; print(bcrypt.hashpw(b'yourpassword', bcrypt.gensalt()).decode())"
-
-# 5. Run
+# 4. Run (cloud sync disabled locally by default)
 streamlit run app.py
 ```
+
+Cloud storage is disabled when `[r2]` is absent from `secrets.toml` — the app runs entirely on local files, which is the correct mode for local development.
 
 ---
 
 ## Directory Structure
 
 ```
-CL_Baro/
-├── app.py                        # Entry point (~390 lines) — auth, CSS, sidebar, routing
+Bus_Barometer/
+├── app.py                        # Entry point — auth, CSS, sidebar, routing
 ├── issue_manager.py              # Issue archive/restore logic
 ├── utils/
 │   ├── config.py                 # All constants, path definitions, label dicts
 │   ├── auth.py                   # bcrypt auth, session management, activity logging
 │   ├── content.py                # Slot system, factory reset, custom sections, file I/O
+│   ├── storage.py                # Cloudflare R2 sync layer (boto3 / S3-compatible)
 │   └── compiler.py               # XeLaTeX runner, MiKTeX helpers, fitz PDF renderer
 ├── views/
 │   ├── sections.py               # Report Sections editor (slot-based + legacy)
@@ -57,7 +55,7 @@ CL_Baro/
 │   ├── charts.py                 # Chart Manager (upload / replace images)
 │   ├── publish.py                # Finalize & Publish (full PDF compile + download)
 │   ├── activity.py               # Activity Log (admin only)
-│   ├── users.py                  # User Management (admin only)
+│   ├── users.py                  # User Management + full R2 sync (admin only)
 │   └── issues_view.py            # Issue Manager (save / load / archive)
 ├── content/                      # Editable LaTeX section files (.tex)
 ├── static_sections/              # Static LaTeX sections (cover, about, methodology)
@@ -66,13 +64,13 @@ CL_Baro/
 │   ├── charts/                   # English chart images (ch1.png … ch25.png, t1-t4.png)
 │   ├── charts_ar/                # Arabic chart images (same naming)
 │   └── static/                   # Logo and other shared images
+├── templates/                    # Empty issue template (placeholder charts + content)
 ├── templates_backup/             # Factory-reset snapshots (created on first run)
-├── issues/                       # Archived issue snapshots (JSON + tex files)
+├── issues/                       # Archived issue snapshots (metadata.json per issue)
 ├── users.json                    # User store (bcrypt hashed — never commit plaintext)
-├── users.json.example            # Template for new deployments
 ├── requirements.txt
 └── .streamlit/
-    └── secrets.toml.example      # Template for Streamlit Cloud deployment
+    └── secrets.toml              # R2 credentials — git-ignored, set in Streamlit Cloud
 ```
 
 ---
@@ -81,22 +79,66 @@ CL_Baro/
 
 | Role | Capabilities |
 |---|---|
-| **admin** | All views + User Management + Factory Reset |
-| **editor** | Report Sections, Variables, Chart Manager, Issue Manager |
+| **admin** | All views + User Management + Factory Reset + R2 full sync |
+| **editor** | Report Sections, Variables, Chart Manager, Issue Manager, Publish |
 | **viewer** | Report Sections (read-only — no save) |
+
+---
+
+## Cloud Storage — Cloudflare R2
+
+The app uses **Cloudflare R2** (S3-compatible object storage) to persist files across Streamlit Cloud's ephemeral filesystem. On every container startup, the app syncs files down from R2; on every save, it pushes the changed file back up.
+
+### How the sync works
+
+| Event | Action |
+|---|---|
+| Container start | Pull all content, overrides, charts, configs, issue metadata from R2 |
+| File save | Push the changed file to R2 in a background thread |
+| Issue archive | Upload the full issue folder to `issues/{lang}/{num}/` in R2 |
+| Issue load | Download the full issue folder on demand (only metadata is fetched at startup) |
+| File delete | Delete the corresponding object from R2 |
+
+`reports/` and `templates/` are intentionally excluded from startup sync — reports are regenerated on demand and template placeholder PNGs are recreated locally.
+
+### R2 credentials
+
+Create an API token in the Cloudflare dashboard under **R2 → Manage R2 API Tokens** with **Object Read & Write** permissions, then add the following to `.streamlit/secrets.toml`:
+
+```toml
+[r2]
+enabled    = true
+account_id = "<your-cloudflare-account-id>"
+access_key = "<your-r2-access-key-id>"
+secret_key = "<your-r2-secret-access-key>"
+bucket     = "<your-bucket-name>"
+```
+
+Set `enabled = false` (or omit the `[r2]` section entirely) for local development.
 
 ---
 
 ## Streamlit Cloud Deployment
 
-Instead of `users.json`, configure users via Streamlit secrets:
+1. Push the repo to GitHub (secrets are git-ignored — never committed).
+2. In Streamlit Cloud → your app → **Settings → Secrets**, paste:
 
-1. Copy `.streamlit/secrets.toml.example` → `.streamlit/secrets.toml`
-2. Replace placeholder hashes with real bcrypt hashes
-3. Add `secrets.toml` to `.gitignore` (already included)
-4. In Streamlit Cloud, paste the contents of `secrets.toml` into the Secrets panel
+```toml
+[r2]
+enabled    = true
+account_id = "<your-cloudflare-account-id>"
+access_key = "<your-r2-access-key-id>"
+secret_key = "<your-r2-secret-access-key>"
+bucket     = "<your-bucket-name>"
 
-The app's `load_users()` automatically falls back to `st.secrets["users"]` when `users.json` is absent.
+[users_json]
+# Optional fallback if users.json is not in the repo.
+# Paste the full JSON content of your users.json here as a string.
+```
+
+3. Reboot the app. On first start it will pull all files from R2 and be fully operational.
+
+> **First deployment?** After the app starts, go to **User Management → Sync All Files to R2** to do an initial upload of all local files to the bucket.
 
 ---
 

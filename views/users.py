@@ -150,20 +150,20 @@ def render(ctx):
 
         st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
-    # ── Supabase full sync ────────────────────────────────────────────────────
+    # ── R2 full sync ─────────────────────────────────────────────────────────
     st.divider()
-    with st.expander("☁️ Sync All Files to Supabase", expanded=False):
+    with st.expander("☁️ Sync All Files to R2", expanded=False):
         st.markdown(
-            "Use this to do an **initial upload** of all local files to Supabase, "
+            "Use this to do an **initial upload** of all local files to Cloudflare R2, "
             "or to force a full re-sync if the cloud bucket is out of date. "
             "This uploads every content file, chart, override, issue archive, and config."
         )
-        if st.button("☁️ Upload Everything to Supabase", type="primary",
+        if st.button("☁️ Upload Everything to R2", type="primary",
                      use_container_width=True, key="full_sync_btn"):
             st.session_state["confirm_full_sync"] = True
 
         if st.session_state.get("confirm_full_sync"):
-            st.warning("This will overwrite all files in the Supabase bucket with your local versions.")
+            st.warning("This will overwrite all files in the R2 bucket with your local versions.")
             cs1, cs2 = st.columns(2)
             with cs1:
                 if st.button("✓ Confirm Upload", key="confirm_sync_yes", type="primary"):
@@ -177,7 +177,8 @@ def render(ctx):
                         ("images/static",   STATIC_IMG_DIR),
                         ("issues",          os.path.join(BASE_DIR, "issues")),
                         ("templates_backup",BACKUP_DIR),
-                        ("templates",       os.path.join(BASE_DIR, "templates")),
+                        # "templates/" is excluded — placeholder PNGs are recreated
+                        # locally on startup and are in _SYNC_SKIP_PREFIXES.
                     ]
                     _files = [
                         os.path.join(BASE_DIR, "config.tex"),
@@ -192,15 +193,15 @@ def render(ctx):
                         USERS_FILE,
                         ACTIVITY_LOG,
                     ]
-                    with st.spinner("Uploading to Supabase…"):
+                    with st.spinner("Uploading to R2…"):
                         for prefix, path in _dirs:
                             if os.path.isdir(path):
                                 _storage.upload_dir(path, prefix)
                         for fpath in _files:
                             if os.path.isfile(fpath):
                                 _storage.upload(fpath)
-                    log_activity("SUPABASE_FULL_SYNC", detail="manual full upload from admin panel")
-                    st.success("All files uploaded to Supabase.")
+                    log_activity("R2_FULL_SYNC", detail="manual full upload from admin panel")
+                    st.success("All files uploaded to R2.")
             with cs2:
                 if st.button("✗ Cancel", key="confirm_sync_no"):
                     st.session_state["confirm_full_sync"] = False

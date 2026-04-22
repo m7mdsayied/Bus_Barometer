@@ -50,3 +50,10 @@ Chart_Scripts/
 content/cs_*.tex
 custom_sections_generated.tex
 custom_sections_generated_ar.tex
+
+# Claude workspace files
+.claude/
+
+# One-off migration / test scripts (contain credentials — never commit)
+migrate_supabase_to_r2.py
+test_r2.py
