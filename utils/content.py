@@ -23,6 +23,79 @@ from utils.config import (
 os.makedirs(OVERRIDES_DIR, exist_ok=True)
 
 
+# ── LaTeX Input Sanitization ───────────────────────────────────────────────────
+def sanitize_latex(text: str) -> str:
+    """
+    Escape bare LaTeX special characters in user input while preserving
+    intentional LaTeX commands, already-escaped sequences, and math mode.
+    """
+    if not text:
+        return text
+
+    _holders = []
+    _counter = [0]
+
+    def _ph(match):
+        _counter[0] += 1
+        key = f"\x00S{_counter[0]}\x00"
+        _holders.append((key, match.group(0)))
+        return key
+
+    # Phase 1: Protect regions that must not be altered
+
+    # 1a. Math mode $...$
+    text = re.sub(r'\$[^$]*\$', _ph, text)
+
+    # 1b. Already-escaped special chars
+    text = re.sub(r'\\[%&#$_\\]|\\textasci(?:itilde|icircum)\{\}', _ph, text)
+
+    # 1c. LaTeX commands \command{...} (brace-counting, not regex)
+    def _protect_cmds(t):
+        out = []
+        i = 0
+        while i < len(t):
+            m = re.match(r'\\([a-zA-Z@]+)\{', t[i:])
+            if m:
+                brace_pos = i + m.end() - 1
+                depth = 1
+                j = brace_pos + 1
+                while j < len(t) and depth > 0:
+                    if t[j] == '{' and t[j - 1] != '\\':
+                        depth += 1
+                    elif t[j] == '}' and t[j - 1] != '\\':
+                        depth -= 1
+                    j += 1
+                if depth == 0:
+                    _counter[0] += 1
+                    key = f"\x00S{_counter[0]}\x00"
+                    _holders.append((key, t[i:j]))
+                    out.append(key)
+                    i = j
+                    continue
+            out.append(t[i])
+            i += 1
+        return ''.join(out)
+
+    text = _protect_cmds(text)
+
+    # 1d. Double backslashes (line breaks)
+    text = re.sub(r'\\\\', _ph, text)
+
+    # Phase 2: Escape bare special characters
+    text = re.sub(r'~', r'\\textasciitilde{}', text)
+    text = re.sub(r'\^', r'\\textasciicircum{}', text)
+    text = re.sub(r'(?<!\\)%', r'\\%', text)
+    text = re.sub(r'(?<!\\)&', r'\\&', text)
+    text = re.sub(r'(?<!\\)#', r'\\#', text)
+    text = re.sub(r'(?<!\\)_', r'\\_', text)
+
+    # Phase 3: Restore protected regions
+    for key, original in _holders:
+        text = text.replace(key, original)
+
+    return text
+
+
 # ── Simple File I/O ──────────────────────────────────────────────────────────
 def load_file(filepath: str) -> str:
     if not os.path.exists(filepath):
@@ -296,6 +369,7 @@ def get_slot_content(slot_id: str, default_text: str):
 
 
 def save_slot(slot_id: str, content: str):
+    content = sanitize_latex(content)
     # save_file() already calls _storage.upload()
     save_file(os.path.join(OVERRIDES_DIR, f"{slot_id}.tex"), content)
     get_all_section_slots.clear()
